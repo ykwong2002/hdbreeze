@@ -14,6 +14,8 @@ import { mountBubbles, type Bubbles } from "./ui/bubbles";
 import { showEndCard } from "./ui/endcard";
 import { showHowTo, showTitle } from "./ui/title";
 import { mountOnboarding } from "./ui/onboarding";
+import { showResidents } from "./ui/residents";
+import { tierFor } from "./game/lines";
 
 function showUnsupported(): void {
   document.getElementById("unsupported")?.removeAttribute("hidden");
@@ -65,9 +67,11 @@ async function boot(): Promise<void> {
   let bubbles: Bubbles | null = null;
   let endcard: { unmount(): void } | null = null;
   let onboarding: { unmount(): void } | null = null;
+  let brainMod: typeof import("./lm/resident") | null = null;
 
   const leave = (): void => {
     document.body.classList.remove("in-level");
+    session?.brain?.dispose();
     endcard?.unmount();
     endcard = null;
     onboarding?.unmount();
@@ -91,7 +95,21 @@ async function boot(): Promise<void> {
   const play = async (id: string): Promise<void> => {
     select.hide();
     session = await startLevel(hdb, id, solverKind());
-    hud = mountHud(ui, session, leave, () => showHowTo(ui));
+    hud = mountHud(ui, session, leave, () => showHowTo(ui), () => {
+      const sess = session;
+      if (!sess?.brain) return;
+      const comfort = (): number => { const st = sess.scoring.state; return 1 - Math.min(1, Math.max(0, (st.meanFeelsLike - 27.5) / 7)) ** 2 * (3 - 2 * Math.min(1, Math.max(0, (st.meanFeelsLike - 27.5) / 7))); };
+      showResidents(ui, sess.brain, () => tierFor(comfort()), () => sess.scoring.state.meanFeelsLike);
+    });
+    // the residents' language model loads after the level is up; 1.5 MB, worker thread
+    void session.overlay.ready.then(async () => {
+      brainMod ??= await import("./lm/resident");
+      const sess = session;
+      if (!sess) return;
+      const brain = new brainMod.ResidentBrain();
+      sess.brain = brain;
+      await brain.load(`${import.meta.env.BASE_URL}models/resident.bin`);
+    });
     const s = session;
     tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; });
     toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));

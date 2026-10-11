@@ -1,7 +1,7 @@
 import type { LevelSession } from "../game/level";
 
 /** In-level chrome for M1: season toggle + back. Score and homes arrive in M3. */
-export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void, onHelp: () => void): { update(): void; unmount(): void } {
+export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void, onHelp: () => void, onResidents: () => void): { update(): void; unmount(): void } {
   const bar = document.createElement("div");
   bar.className = "hud";
   const back = document.createElement("button");
@@ -19,6 +19,11 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
     session.nextSeason();
     update();
   };
+  const residents = document.createElement("button");
+  residents.className = "chip chip-residents";
+  residents.textContent = "🗣";
+  residents.setAttribute("aria-label", "Hear the residents");
+  residents.onclick = onResidents;
   const help = document.createElement("button");
   help.className = "chip";
   help.textContent = "?";
@@ -26,7 +31,7 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
   help.onclick = onHelp;
   const dev = document.createElement("span");
   dev.className = "devstats";
-  bar.append(back, seasonBtn, help, dev);
+  bar.append(back, seasonBtn, residents, help, dev);
   root.append(bar);
 
   const update = (): void => {

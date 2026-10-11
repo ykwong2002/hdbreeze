@@ -13,6 +13,7 @@
  *   tap:block:<n>         tap placed block n
  *   tool:<rotate|height|void|move|remove>   press a toolbar button
  *   season                toggle the monsoon chip
+ *   residents             open the "what the residents say" card (tiny language model)
  *   fill[:naive]          place the whole tray automatically (reference: spread, along the wind, void decks; naive: across, high)
  *   state                 print score, homes, blocks, hint and bubble text
  * Needs the locally installed Chrome; puppeteer-core is a dev dependency.
@@ -55,6 +56,7 @@ for (const cmd of cmds) {
     else if (op === "tap" && a === "block") { const p = await projectBlock(Number(b)); if (p) { await page.touchscreen.tap(p.x, p.y); await wait(600); } }
     else if (op === "tool") { await tapEl(`.toolbar .${a}`); await wait(400); }
     else if (op === "season") { await tapEl(".chip-wind"); await wait(500); }
+    else if (op === "residents") { await tapEl(".chip-residents"); await wait(2500); }
     else if (op === "fill") { await page.evaluate((style) => window.__fill(style), a === "naive" ? "naive" : "reference"); await wait(1000); }
     else if (op === "state") { const st = await page.evaluate(() => { const s = window.__session; if (!s) return { note: "no level open" }; return { score: Math.round(s.scoring.state.satisfaction), homes: s.scoring.state.homes, target: s.level.targets.homes, threshold: s.level.targets.satisfaction, blocks: s.blocks.blocks.map((b) => `${b.type} ${b.height} ${b.rotDeg}deg${b.voidDeck ? " void" : ""}`), placed: `${s.blocks.blocks.length}/${s.blocks.total()}`, season: s.season.label, cleared: s.scoring.state.cleared, hint: document.querySelector(".tray-hint")?.textContent, bubble: document.querySelector(".bubble")?.hidden ? null : document.querySelector(".bubble")?.textContent, hintBox: document.querySelector(".hint:not([hidden])")?.textContent ?? null }; }); console.log("state:", JSON.stringify(st)); }
     else console.log("unknown command", cmd);
