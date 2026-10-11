@@ -24,3 +24,6 @@ Thumbs.db
 
 # local tile extract for testing the PMTiles fallback (26 MB, not committed)
 public/tiles/
+
+# screenshot output from tools/shoot
+shots/
