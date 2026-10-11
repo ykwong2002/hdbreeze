@@ -39,6 +39,16 @@ pmtiles extract https://build.protomaps.com/<latest>.pmtiles singapore.pmtiles -
 
 Upload it to a bucket that supports HTTP range requests and CORS (Cloudflare R2 is the recommended host) and set `VITE_PMTILES_URL` to its public URL. For local testing put it at `public/tiles/singapore.pmtiles` (gitignored) and set `VITE_PMTILES_URL=/tiles/singapore.pmtiles` in `.env.local`.
 
+## Bake a level
+
+Levels are pure data. Author `levels/<id>.json` (play-area centre and size, camera, seasons, plot points, targets), then:
+
+```sh
+npm run bake -- punggol
+```
+
+The bake downloads the four data.gov.sg datasets into `data/raw/` on first run (cached, gitignored), joins HDB footprints to storeys, reads non-HDB buildings and footpaths from `data/raw/singapore.pmtiles` (the same Protomaps extract as the basemap fallback; copy it there), tags ground kinds from the Master Plan land-use layer, resolves each plot point to its land-use parcel, and writes `public/levels/<id>.json` plus `public/levels/index.json`. Spike results and data notes: [docs/spikes.md](docs/spikes.md).
+
 ## Deploy
 
 Static site on Cloudflare Workers (static assets, no Worker code): in the Cloudflare dashboard create a Worker from the GitHub repo with build command `npm run build` and deploy command `npx wrangler deploy`; `wrangler.jsonc` points it at `dist/`. Add `VITE_PMTILES_URL` as a build variable if you host the basemap fallback. `npm run deploy` does the same from a local build.
