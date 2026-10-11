@@ -12,7 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit",
-    "deploy": "npx wrangler pages deploy",
+    "deploy": "npx wrangler deploy",
     "shoot": "node tools/shoot/shoot.mjs http://localhost:4173/ shots"
   },
   "dependencies": {
