@@ -1,0 +1,110 @@
+{
+  "id": "punggol",
+  "name": "Punggol",
+  "tagline": "HDB modelled the wind here before building. Can you?",
+  "area": {
+    "center": [
+      103.906,
+      1.406
+    ],
+    "sizeM": 900,
+    "contextM": 450
+  },
+  "camera": {
+    "zoom": 15.7,
+    "pitch": 55,
+    "bearing": 20
+  },
+  "grid": 256,
+  "wind": {
+    "seasons": [
+      {
+        "id": "ne",
+        "label": "NE monsoon (Dec–Mar)",
+        "fromDeg": 30,
+        "speed": 1.0
+      },
+      {
+        "id": "sw",
+        "label": "SW monsoon (Jun–Sep)",
+        "fromDeg": 160,
+        "speed": 0.8
+      }
+    ],
+    "required": [
+      "ne"
+    ]
+  },
+  "plots": [
+    {
+      "id": "p1",
+      "label": "Reserve site, north",
+      "at": [
+        103.90393,
+        1.4095
+      ],
+      "maxStoreys": 20,
+      "gpr": 3.0
+    },
+    {
+      "id": "p2",
+      "label": "Reserve site, north-west",
+      "at": [
+        103.90263,
+        1.40901
+      ],
+      "maxStoreys": 20,
+      "gpr": 3.0
+    },
+    {
+      "id": "p3",
+      "label": "Reserve site, west",
+      "at": [
+        103.90304,
+        1.40425
+      ],
+      "maxStoreys": 25,
+      "gpr": 3.0
+    },
+    {
+      "id": "p4",
+      "label": "Town centre site",
+      "at": [
+        103.90439,
+        1.40626
+      ],
+      "maxStoreys": 30,
+      "gpr": 4.2
+    },
+    {
+      "id": "p5",
+      "label": "Residential, east",
+      "at": [
+        103.90937,
+        1.40743
+      ],
+      "maxStoreys": 25,
+      "gpr": 3.0
+    }
+  ],
+  "hotspots": [
+    [
+      103.906,
+      1.406
+    ]
+  ],
+  "targets": {
+    "homes": 3000,
+    "satisfaction": 70,
+    "holdSeconds": 4
+  },
+  "palette": [
+    "slab",
+    "point",
+    "l",
+    "courtyard",
+    "mscp",
+    "pavilion"
+  ],
+  "onboarding": true
+}
