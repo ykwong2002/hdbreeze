@@ -25,7 +25,7 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
   root.append(bar);
 
   const update = (): void => {
-    label.textContent = session.season.label;
+    label.textContent = session.season.label.split(" (")[0] ?? session.season.label;
     // the arrow points where the wind goes: from fromDeg toward fromDeg + 180
     arrow.style.transform = `rotate(${session.season.fromDeg + 180 - 90}deg)`;
   };
