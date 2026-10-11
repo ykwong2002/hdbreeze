@@ -1,16 +1,17 @@
-import type { MapMouseEvent, MapGeoJSONFeature } from "maplibre-gl";
+import type { MapMouseEvent } from "maplibre-gl";
 import type { HdbMap } from "../map/map";
 import { createAgentsLayer } from "../map/agents-layer";
 import { addLevelLayers, LEVEL_PLOTS_FILL, removeLevelLayers } from "../map/buildings";
 import { createWindOverlay, type WindOverlay } from "../map/overlay-layer";
-import { ensurePlacedLayer, removePlacedLayer, updatePlacedLayer } from "../map/placed";
+import { ensurePlacedLayer, PLACED_LAYER, removePlacedLayer, updatePlacedLayer } from "../map/placed";
 import { FIRST_LABEL_LAYER } from "../map/style";
 import type { SolverKind } from "../sim/solver";
 import type { BuildingGeom } from "../sim/obstacles";
 import { Agents, type Agent } from "./agents";
 import type { BakedLevel, LonLat, Season } from "./level-types";
 import { pickLine, tierFor, type Tier } from "./lines";
-import { Placement } from "./placement";
+import { Blocks, type PlaceResult } from "./blocks";
+import type { TypologyId } from "./typologies";
 import { Scoring, type ScoreState } from "./scoring";
 
 export interface Speech {
@@ -23,17 +24,21 @@ export interface Speech {
 export interface LevelSession {
   level: BakedLevel;
   overlay: WindOverlay;
-  placement: Placement;
+  blocks: Blocks;
   scoring: Scoring;
   agents: Agents | null;
   season: Season;
-  selectedPlot: string | null;
+  selectedBlock: string | null;
+  /** What an area tap places next (set by the tray). */
+  trayType: TypologyId | null;
+  moveMode: () => boolean;
   setSeason(id: string): void;
   nextSeason(): Season;
-  /** Selects a plot and places/moves its block at `at` (defaults to the plot centroid). */
-  selectPlot(id: string, at?: LonLat): void;
-  deselect(): void;
-  onPlotSelected(cb: (id: string | null) => void): void;
+  /** Routes a tap at lon/lat: block -> select, area -> place or move, else deselect. Returns what happened. */
+  tap(at: LonLat, hitBlockId: string | null): "selected" | "placed" | "moved" | "deselected" | PlaceResult;
+  select(id: string | null): void;
+  onSelection(cb: (id: string | null) => void): void;
+  onReject(cb: (reason: string) => void): void;
   onScore(cb: (s: ScoreState) => void): void;
   onSpeech(cb: (s: Speech) => void): void;
   onCleared(cb: () => void): void;
@@ -66,16 +71,18 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   const overlay = createWindOverlay(OVERLAY_ID, { n: level.grid, bbox: level.bbox, solver }, level);
   map.addLayer(overlay.layer, LEVEL_PLOTS_FILL);
 
-  const placement = new Placement(level);
+  const blocks = new Blocks(level);
   const scoring = new Scoring(level.targets.homes, level.targets.satisfaction, level.targets.holdSeconds);
+  let selected: string | null = null;
+  const self = { trayType: null as TypologyId | null, moveMode: () => false };
   let agents: Agents | null = null;
   const scoreListeners: Array<(s: ScoreState) => void> = [];
   const speechListeners: Array<(s: Speech) => void> = [];
   const clearedListeners: Array<() => void> = [];
 
   const pushPlaced = (): void => {
-    const geoms = placement.geometries();
-    updatePlacedLayer(map, geoms);
+    const geoms = blocks.geometries();
+    updatePlacedLayer(map, geoms, selected);
     overlay.ready
       .then((sim) => {
         const b: BuildingGeom[] = [];
@@ -92,7 +99,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
       })
       .catch(() => {});
   };
-  placement.onChange(pushPlaced);
+  blocks.onChange(pushPlaced);
 
   // residents, scoring and speech run on their own frame loop once the sim exists
   let raf = 0;
@@ -110,7 +117,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
         const dt = Math.min(0.1, (now - last) / 1000);
         last = now;
         const { meanComfort, meanFeels } = ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
-        const state = scoring.update(dt, meanComfort, meanFeels, placement.totalHomes());
+        const state = scoring.update(dt, meanComfort, meanFeels, blocks.homes(), blocks.blocks.length, blocks.total());
         for (const cb of scoreListeners) cb(state);
         if (state.cleared && !clearedFired) {
           clearedFired = true;
@@ -137,40 +144,63 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   };
   applySeason();
 
-  let selected: string | null = null;
   const selectListeners: Array<(id: string | null) => void> = [];
-  const setSelected = (idOrNull: string | null): void => {
-    if (selected) map.setFeatureState({ source: "level-plots", id: selected }, { selected: false });
+  const select = (idOrNull: string | null): void => {
     selected = idOrNull;
-    if (selected) map.setFeatureState({ source: "level-plots", id: selected }, { selected: true });
+    pushPlaced();
     for (const cb of selectListeners) cb(selected);
   };
-  const selectPlot = (pid: string, at?: LonLat): void => {
-    const plot = level.areas.find((p) => p.id === pid);
-    if (!plot) return;
-    placement.placeOrMove(pid, at ?? centroidOf(plot.polygon));
-    setSelected(pid);
+  const tap = (at: LonLat, hitBlockId: string | null): ReturnType<LevelSession["tap"]> => {
+    if (hitBlockId && !(selected && self.moveMode())) {
+      select(hitBlockId);
+      return "selected";
+    }
+    const area = blocks.areaAt(at);
+    if (area && selected && self.moveMode()) {
+      const r = blocks.move(selected, at);
+      return r.ok ? "moved" : r;
+    }
+    if (area && self.trayType) {
+      const r = blocks.place(self.trayType, at);
+      if (r.ok) select(r.block.id);
+      return r.ok ? "placed" : r;
+    }
+    select(null);
+    return "deselected";
   };
-  const onPlotClick = (e: MapMouseEvent & { features?: MapGeoJSONFeature[] }): void => {
-    const f = e.features?.[0];
-    const pid = f?.properties?.id as string | undefined;
-    if (!pid) return;
-    selectPlot(pid, [e.lngLat.lng, e.lngLat.lat]);
+  const onMapClick = (e: MapMouseEvent): void => {
+    const hit = map.queryRenderedFeatures(e.point, { layers: [PLACED_LAYER] })[0];
+    const id = (hit?.properties?.block as string | undefined) ?? null;
+    const r = tap([e.lngLat.lng, e.lngLat.lat], id);
+    if (typeof r === "object" && !r.ok) for (const cb of rejectListeners) cb(r.reason);
   };
-  map.on("click", LEVEL_PLOTS_FILL, onPlotClick);
+  const rejectListeners: Array<(reason: string) => void> = [];
+  map.on("click", onMapClick);
 
   return {
     level,
     overlay,
-    placement,
+    blocks,
     scoring,
+    get trayType() {
+      return self.trayType;
+    },
+    set trayType(t) {
+      self.trayType = t;
+    },
+    get moveMode() {
+      return self.moveMode;
+    },
+    set moveMode(fn) {
+      self.moveMode = fn;
+    },
     get agents() {
       return agents;
     },
     get season() {
       return season;
     },
-    get selectedPlot() {
+    get selectedBlock() {
       return selected;
     },
     setSeason(sid) {
@@ -185,15 +215,16 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
       applySeason();
       return season;
     },
-    selectPlot,
-    deselect: () => setSelected(null),
-    onPlotSelected: (cb) => { selectListeners.push(cb); },
+    tap,
+    select,
+    onSelection: (cb) => { selectListeners.push(cb); },
+    onReject: (cb) => { rejectListeners.push(cb); },
     onScore: (cb) => { scoreListeners.push(cb); },
     onSpeech: (cb) => { speechListeners.push(cb); },
     onCleared: (cb) => { clearedListeners.push(cb); },
     dispose() {
       cancelAnimationFrame(raf);
-      map.off("click", LEVEL_PLOTS_FILL, onPlotClick);
+      map.off("click", onMapClick);
       if (map.getLayer(AGENTS_ID)) map.removeLayer(AGENTS_ID);
       if (map.getLayer(OVERLAY_ID)) map.removeLayer(OVERLAY_ID);
       removePlacedLayer(map);

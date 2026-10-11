@@ -1,6 +1,6 @@
 import type { Map as MlMap } from "maplibre-gl";
 import { FIRST_LABEL_LAYER } from "./style";
-import type { PlacedGeometry } from "../game/placement";
+import type { PlacedGeometry } from "../game/blocks";
 
 /** The player's blocks as extrusions: bodies (raised when the void deck is on) plus columns. */
 const SRC = "level-placed";
@@ -15,7 +15,7 @@ export function ensurePlacedLayer(map: MlMap): void {
       type: "fill-extrusion",
       source: SRC,
       paint: {
-        "fill-extrusion-color": ["match", ["get", "part"], "column", "#9fb3b0", "#d9ece9"],
+        "fill-extrusion-color": ["case", ["==", ["get", "part"], "column"], "#9fb3b0", ["boolean", ["get", "selected"], false], "#bfe3df", "#d9ece9"],
         "fill-extrusion-height": ["get", "h"],
         "fill-extrusion-base": ["get", "base"],
         "fill-extrusion-opacity": 1,
@@ -26,13 +26,14 @@ export function ensurePlacedLayer(map: MlMap): void {
   );
 }
 
-export function updatePlacedLayer(map: MlMap, geoms: PlacedGeometry[]): void {
+export function updatePlacedLayer(map: MlMap, geoms: PlacedGeometry[], selectedId: string | null): void {
   const src = map.getSource(SRC) as { setData(d: unknown): void } | undefined;
   if (!src) return;
   const features: unknown[] = [];
   for (const g of geoms) {
-    for (const b of g.bodies) features.push({ type: "Feature", properties: { part: "body", h: b.height, base: b.base, plot: g.plotId }, geometry: { type: "Polygon", coordinates: [b.ring] } });
-    for (const c of g.columns) features.push({ type: "Feature", properties: { part: "column", h: 4.5, base: 0, plot: g.plotId }, geometry: { type: "Polygon", coordinates: [c] } });
+    const selected = g.blockId === selectedId;
+    for (const b of g.bodies) features.push({ type: "Feature", properties: { part: "body", h: b.height, base: b.base, block: g.blockId, selected }, geometry: { type: "Polygon", coordinates: [b.ring] } });
+    for (const c of g.columns) features.push({ type: "Feature", properties: { part: "column", h: 4.5, base: 0, block: g.blockId, selected }, geometry: { type: "Polygon", coordinates: [c] } });
   }
   src.setData({ type: "FeatureCollection", features });
 }

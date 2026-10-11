@@ -7,7 +7,8 @@ import type { LevelIndexEntry } from "./game/level-types";
 import type { SolverKind } from "./sim/solver";
 import { mountHud } from "./ui/hud";
 import { mountSelect } from "./ui/select";
-import { mountSheet, type Sheet } from "./ui/sheet";
+import { mountTray, type Tray } from "./ui/tray";
+import { mountToolbar, type Toolbar } from "./ui/toolbar";
 import { mountScore } from "./ui/score";
 import { mountBubbles, type Bubbles } from "./ui/bubbles";
 import { showEndCard } from "./ui/endcard";
@@ -56,21 +57,24 @@ async function boot(): Promise<void> {
   const levels = (await (await fetch(`${import.meta.env.BASE_URL}levels/index.json`)).json()) as LevelIndexEntry[];
   let session: LevelSession | null = null;
   let hud: ReturnType<typeof mountHud> | null = null;
-  let sheet: Sheet | null = null;
+  let tray: Tray | null = null;
+  let toolbar: Toolbar | null = null;
   let score: ReturnType<typeof mountScore> | null = null;
   let bubbles: Bubbles | null = null;
   let endcard: { unmount(): void } | null = null;
 
   const leave = (): void => {
-    document.body.classList.remove("sheet-open", "in-level");
+    document.body.classList.remove("in-level");
     endcard?.unmount();
     endcard = null;
     bubbles?.unmount();
     bubbles = null;
     score?.unmount();
     score = null;
-    sheet?.unmount();
-    sheet = null;
+    toolbar?.unmount();
+    toolbar = null;
+    tray?.unmount();
+    tray = null;
     hud?.unmount();
     hud = null;
     session?.dispose();
@@ -84,22 +88,21 @@ async function boot(): Promise<void> {
     session = await startLevel(hdb, id, solverKind());
     hud = mountHud(ui, session, leave);
     const s = session;
-    sheet = mountSheet(ui, s.placement, () => s.deselect());
-    s.onPlotSelected((pid) => {
-      if (pid) sheet?.open(pid);
-      else sheet?.close();
-      document.querySelector(".hud")?.classList.toggle("with-sheet", !!pid);
-      document.body.classList.toggle("sheet-open", !!pid);
+    tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; });
+    toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));
+    s.moveMode = () => toolbar?.moveMode() ?? false;
+    s.onSelection((id) => {
+      if (id) toolbar?.show(id);
+      else toolbar?.hide();
     });
-    s.placement.onChange(() => sheet?.refresh());
+    s.onReject(() => tray?.shake());
     document.body.classList.add("in-level");
     score = mountScore(ui, s.level.targets.satisfaction, s.level.targets.homes);
     s.onScore((st) => score?.update(st));
     bubbles = mountBubbles(ui, hdb.map);
     s.onSpeech((sp) => bubbles?.say(sp.lonLat(), sp.text, sp.tier, sp.lonLat));
     s.onCleared(() => {
-      sheet?.close();
-      s.deselect();
+      s.select(null);
       endcard = showEndCard(ui, {
         levelName: s.level.name,
         state: s.scoring.state,

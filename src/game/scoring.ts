@@ -5,6 +5,9 @@ export interface ScoreState {
   meanFeelsLike: number;
   homes: number;
   homesOk: boolean;
+  placed: number;
+  toPlace: number;
+  allPlaced: boolean;
   satisfactionOk: boolean;
   /** 0..1 progress through the hold window while both conditions are true. */
   hold: number;
@@ -31,10 +34,10 @@ export class Scoring {
     readonly threshold: number,
     readonly holdSeconds: number,
   ) {
-    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, satisfactionOk: false, hold: 0, cleared: false };
+    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, satisfactionOk: false, hold: 0, cleared: false };
   }
 
-  update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number): ScoreState {
+  update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number, placed = 0, toPlace = 0): ScoreState {
     const s = this.state;
     if (meanComfort !== null) {
       const target = 100 * meanComfort;
@@ -44,8 +47,11 @@ export class Scoring {
     if (meanFeels !== null) s.meanFeelsLike += (meanFeels - s.meanFeelsLike) * (1 - Math.exp(-dt / 1.0));
     s.homes = homes;
     s.homesOk = homes >= this.targetHomes;
+    s.placed = placed;
+    s.toPlace = toPlace;
+    s.allPlaced = toPlace > 0 && placed >= toPlace;
     s.satisfactionOk = s.satisfaction >= this.threshold;
-    if (s.homesOk && s.satisfactionOk && !s.cleared) {
+    if (s.allPlaced && s.homesOk && s.satisfactionOk && !s.cleared) {
       this.holdSec += dt;
       s.hold = Math.min(1, this.holdSec / this.holdSeconds);
       if (this.holdSec >= this.holdSeconds) s.cleared = true;
