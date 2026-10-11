@@ -33,7 +33,7 @@ export class WindSim {
   readonly raster: ObstacleRaster;
   readonly readback: HeatReadback;
   readonly params: WindParams;
-  readonly vis: VisParams = { q: 0.1, kappa: 0.03, kappaWind: 0.1, tMax: 2.4, particleSpeed: 1.0, fade: 0.94 };
+  readonly vis: VisParams = { q: 0.1, kappa: 0.03, kappaWind: 0.1, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
   readonly bbox: [number, number, number, number];
   readonly metresPerCell: number;
   private probe: StatsProbe;
@@ -81,6 +81,7 @@ export class WindSim {
     const buildings: BuildingGeom[] = level.buildings.map((b) => ({ ring: b.fp.map((p) => this.toCell(p[0], p[1])), heightM: b.h, sigma: 1 }));
     this.raster.setGround(ground);
     this.raster.setStaticBuildings(buildings);
+    this.raster.setMask(level.district.map((p) => this.toCell(p[0], p[1])), level.scoreZone.map((p) => this.toCell(p[0], p[1])));
     this.reset();
   }
 

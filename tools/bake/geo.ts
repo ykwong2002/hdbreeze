@@ -105,3 +105,43 @@ function segDist(p: Pt, a: Pt, b: Pt): number {
 export function round6(ring: Ring): Ring {
   return ring.map((p) => [Math.round(p[0] * 1e6) / 1e6, Math.round(p[1] * 1e6) / 1e6]);
 }
+
+export function bboxOfRing(ring: Ring): Bbox {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const [x, y] of ring) { w = Math.min(w, x); e = Math.max(e, x); s = Math.min(s, y); n = Math.max(n, y); }
+  return { w, s, e, n };
+}
+
+/** Square box (in metres) that contains `b`, padded by `padM`. */
+export function squareAround(b: Bbox, padM: number): Bbox {
+  const lat = (b.s + b.n) / 2;
+  const wM = (b.e - b.w) * mPerDegLon(lat), hM = (b.n - b.s) * M_PER_DEG_LAT;
+  const size = Math.max(wM, hM) + 2 * padM;
+  return squareBbox([(b.w + b.e) / 2, lat], size);
+}
+
+/** Convex hull (Andrew's monotone chain) of points; returns a closed ring. */
+export function convexHull(pts: Pt[]): Ring {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (p.length < 3) return [...p, p[0]!];
+  const cross = (o: Pt, a: Pt, b: Pt) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower: Pt[] = [];
+  for (const q of p) { while (lower.length >= 2 && cross(lower[lower.length - 2]!, lower[lower.length - 1]!, q) <= 0) lower.pop(); lower.push(q); }
+  const upper: Pt[] = [];
+  for (let i = p.length - 1; i >= 0; i--) { const q = p[i]!; while (upper.length >= 2 && cross(upper[upper.length - 2]!, upper[upper.length - 1]!, q) <= 0) upper.pop(); upper.push(q); }
+  upper.pop(); lower.pop();
+  const hull = [...lower, ...upper];
+  hull.push(hull[0]!);
+  return hull;
+}
+
+/** Pushes every vertex of a convex ring outward from its centroid by `m` metres (cheap buffer). */
+export function expandRing(ring: Ring, m: number): Ring {
+  const c = centroid(ring.slice(0, -1));
+  const kx = mPerDegLon(c[1]), ky = M_PER_DEG_LAT;
+  return ring.map(([x, y]) => {
+    const dx = (x - c[0]) * kx, dy = (y - c[1]) * ky;
+    const d = Math.hypot(dx, dy) || 1;
+    return [x + (dx / d) * m / kx, y + (dy / d) * m / ky] as Pt;
+  });
+}

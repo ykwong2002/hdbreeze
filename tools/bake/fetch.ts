@@ -7,6 +7,8 @@ export const DATASETS = {
   hdb_property_info: { id: "d_17f5382f26140b1fdae0ba2ef6239d2f", file: "hdb_property_info.csv" },
   mp25_planning_area: { id: "d_2cc750190544007400b2cfd5d7f53209", file: "mp25_planning_area.geojson" },
   mp25_landuse: { id: "d_a8c3546b26712e35021f3a681d0353ae", file: "mp25_landuse.geojson" },
+  /** Master Plan 2019 Subzone Boundary (No Sea); there is no 2025 subzone layer. */
+  mp19_subzone: { id: "d_8594ae9ff96d0c708bc2af633048edfb", file: "mp19_subzone.geojson" },
 } as const;
 
 export const RAW_DIR = join(process.cwd(), "data", "raw");

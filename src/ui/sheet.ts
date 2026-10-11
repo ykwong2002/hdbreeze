@@ -82,7 +82,7 @@ export function mountSheet(root: HTMLElement, placement: Placement, onClose: () 
     const t = typology(p.type);
     const range = storeyRange(plot, p.type);
     q<HTMLElement>(".sheet-title").textContent = plot.label;
-    q<HTMLElement>(".sheet-sub").textContent = ` · ${(plot.areaM2 / 10000).toFixed(1)} ha · plot ratio ${plot.gpr}`;
+    q<HTMLElement>(".sheet-sub").textContent = ` · ${(plot.areaM2 / 10000).toFixed(1)} ha`;
     for (const b of chips.querySelectorAll<HTMLButtonElement>(".chip-type")) b.classList.toggle("on", b.dataset.type === p.type);
     storeys.min = String(range.min);
     storeys.max = String(range.max);

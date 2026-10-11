@@ -14,7 +14,7 @@ uniform mat4 u_matrix; in vec2 a_pos; in vec2 a_uv; out vec2 v_uv;
 void main() { v_uv = a_uv; gl_Position = u_matrix * vec4(a_pos, 0.0, 1.0); }`;
 
 const FS = `${GLSL_HEADER}
-uniform sampler2D uHeat, uObs, uTrail; uniform float uTMax, uAlpha;
+uniform sampler2D uHeat, uObs, uTrail, uMask; uniform float uTMax, uAlpha;
 in vec2 v_uv; out vec4 o;
 vec3 ramp(float t) {
   vec3 c0 = vec3(0.16, 0.47, 0.84), c1 = vec3(0.55, 0.80, 0.86), c2 = vec3(0.93, 0.90, 0.78), c3 = vec3(0.96, 0.62, 0.30), c4 = vec3(0.85, 0.22, 0.16);
@@ -31,9 +31,8 @@ void main() {
   float trail = clamp(texture(uTrail, v_uv).r, 0.0, 1.0);
   col = mix(col, vec3(1.0), trail * 0.9);
   float a = uAlpha + 0.25 * trail;
-  // soften the box edge
-  vec2 e = min(v_uv, 1.0 - v_uv);
-  a *= smoothstep(0.0, 0.03, min(e.x, e.y));
+  // district mask: nothing outside the subzone, faded outside the neighbourhood the player can influence
+  a *= texture(uMask, v_uv).b;
   o = vec4(col * a, a);
 }`;
 
@@ -99,7 +98,7 @@ export function createWindOverlay(id: string, opts: SimOptions, level: BakedLeve
       if (!sim) return;
       prog.use();
       gl.uniformMatrix4fv(prog.loc("u_matrix"), false, args.defaultProjectionData.mainMatrix as Float32Array);
-      prog.tex("uHeat", 0, sim.heat.tex).tex("uObs", 1, sim.raster.texture).tex("uTrail", 2, sim.particles.tex).f("uTMax", sim.vis.tMax).f("uAlpha", self.alpha);
+      prog.tex("uHeat", 0, sim.heat.tex).tex("uObs", 1, sim.raster.texture).tex("uTrail", 2, sim.particles.tex).tex("uMask", 3, sim.raster.maskTexture).f("uTMax", sim.vis.tMax).f("uAlpha", self.alpha);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.DEPTH_TEST);

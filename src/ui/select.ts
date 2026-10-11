@@ -11,7 +11,7 @@ export function mountSelect(root: HTMLElement, levels: LevelIndexEntry[], onPick
   for (const l of levels) {
     const b = document.createElement("button");
     b.className = "town";
-    b.innerHTML = `<strong>${l.name}</strong><span>${l.tagline}</span>`;
+    b.innerHTML = `<strong>${l.name}</strong><em>${l.subzone.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</em><span>${l.tagline}</span>`;
     b.onclick = () => onPick(l.id);
     card.append(b);
   }
