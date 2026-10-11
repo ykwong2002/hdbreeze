@@ -1,0 +1,22 @@
+# dependencies and build output
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# baked-data sources (large raw downloads, re-fetchable)
+data/raw/
+
+# local env and tooling
+.env
+.env.*
+.wrangler/
+.vercel/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
