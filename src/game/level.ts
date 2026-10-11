@@ -10,6 +10,7 @@ import type { BuildingGeom } from "../sim/obstacles";
 import { Agents, type Agent } from "./agents";
 import type { BakedLevel, LonLat, Season } from "./level-types";
 import { pickLine, tierFor, type Tier } from "./lines";
+import type { ResidentBrain } from "../lm/resident";
 import { Blocks, type PlaceResult } from "./blocks";
 import type { TypologyId } from "./typologies";
 import { comfortFromFeels, feelsLikeC, Scoring, type ScoreState } from "./scoring";
@@ -24,6 +25,8 @@ export interface Speech {
 export interface LevelSession {
   level: BakedLevel;
   overlay: WindOverlay;
+  /** Optional tiny language model for fresh resident lines. */
+  brain: ResidentBrain | null;
   blocks: Blocks;
   scoring: Scoring;
   agents: Agents | null;
@@ -73,6 +76,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   map.addLayer(overlay.layer, LEVEL_PLOTS_FILL);
 
   const blocks = new Blocks(level);
+  const self2 = { brain: null as ResidentBrain | null };
   const scoring = new Scoring(level.targets.homes, level.targets.satisfaction, level.targets.holdSeconds);
   scoring.required = level.wind.required;
   const hintListeners: Array<(text: string) => void> = [];
@@ -152,13 +156,18 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
           for (const cb of clearedListeners) cb();
         }
         if (now >= nextSpeech && ag.agents.length && sim.readback.ready) {
-          nextSpeech = now + 1000 + Math.random() * 1000;
+          nextSpeech = now + 1400 + Math.random() * 1200;
           const a = ag.agents[Math.floor(Math.random() * ag.agents.length)]!;
           const tier = tierFor(a.comfort);
-          const text = pickLine(tier, lastLine);
-          lastLine = text;
-          const speech: Speech = { agent: a, text, tier, lonLat: () => sim.toLonLat(a.x, a.y) };
-          for (const cb of speechListeners) cb(speech);
+          const emit = (text: string): void => {
+            lastLine = text;
+            for (const cb of speechListeners) cb({ agent: a, text, tier, lonLat: () => sim.toLonLat(a.x, a.y) });
+          };
+          // two in three lines come from the tiny model once it is loaded; the rest from the script
+          const brain = self2.brain;
+          if (brain?.ready && Math.random() < 0.67) {
+            void brain.say(tier).then((t) => emit(t ?? pickLine(tier, lastLine)));
+          } else emit(pickLine(tier, lastLine));
         }
       };
       raf = requestAnimationFrame(loop);
@@ -225,6 +234,12 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   return {
     level,
     overlay,
+    get brain() {
+      return self2.brain;
+    },
+    set brain(b) {
+      self2.brain = b;
+    },
     blocks,
     scoring,
     get trayType() {

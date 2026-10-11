@@ -64,7 +64,7 @@ export const LINES: Record<Tier, string[]> = {
 export function tierFor(comfort: number): Tier {
   if (comfort < 0.3) return "miserable";
   if (comfort < 0.6) return "warm";
-  if (comfort < 0.97) return "pleasant";
+  if (comfort < 0.995) return "pleasant"; // "cold" only when it is genuinely cool, under ~27.2 C
   return "cold";
 }
 
