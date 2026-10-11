@@ -264,6 +264,7 @@ function spriteLayer(): CustomLayerInterface {
       gl.depthFunc(gl.LEQUAL);
       gl.depthMask(true);
       gl.disable(gl.BLEND);
+      gl.disable(gl.CULL_FACE); // MapLibre leaves culling on; our quads face both ways
       gl.drawArrays(gl.TRIANGLES, 0, PEOPLE.length * 6);
       gl.bindVertexArray(null);
     },
