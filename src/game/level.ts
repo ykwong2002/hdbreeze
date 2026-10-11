@@ -58,7 +58,7 @@ function centroidOf(ring: LonLat[]): LonLat {
 export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): Promise<LevelSession> {
   const level = await loadLevelData(id);
   const map = hdb.map;
-  map.flyTo({ center: level.area.center, zoom: level.camera.zoom, pitch: level.camera.pitch, bearing: level.camera.bearing, duration: 2200, essential: true });
+  map.flyTo({ center: centroidOf(level.scoreZone), zoom: level.camera.zoom, pitch: level.camera.pitch, bearing: level.camera.bearing, duration: 2200, essential: true });
   map.setMaxBounds(undefined);
 
   addLevelLayers(map, level);
@@ -146,7 +146,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     for (const cb of selectListeners) cb(selected);
   };
   const selectPlot = (pid: string, at?: LonLat): void => {
-    const plot = level.plots.find((p) => p.id === pid);
+    const plot = level.areas.find((p) => p.id === pid);
     if (!plot) return;
     placement.placeOrMove(pid, at ?? centroidOf(plot.polygon));
     setSelected(pid);

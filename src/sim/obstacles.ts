@@ -93,6 +93,8 @@ export class ObstacleRaster {
   private pWake: Program;
   private pBlur: Program;
   private pCombine: Program;
+  private mask: FBO;
+  private maskMesh: Mesh | null = null;
   private groundMesh: Mesh | null = null;
   private staticMesh: Mesh | null = null;
   private dynamicMesh: Mesh | null = null;
@@ -110,6 +112,7 @@ export class ObstacleRaster {
     this.blurA = new FBO(gl, N, N, this.rgba8, gl.NEAREST);
     this.blurB = new FBO(gl, N, N, this.rgba8, gl.NEAREST);
     this.out = new FBO(gl, N, N, this.rgba8, gl.NEAREST);
+    this.mask = new FBO(gl, N, N, this.rgba8, gl.LINEAR);
     this.pGround = new Program(gl, GROUND_VS, GROUND_FS);
     this.pBuilding = new Program(gl, BUILDING_VS, BUILDING_FS);
     this.pWake = new Program(gl, WAKE_VS, WAKE_FS);
@@ -119,6 +122,31 @@ export class ObstacleRaster {
 
   get texture(): WebGLTexture {
     return this.out.tex;
+  }
+  /** R = visibility weight: 0 outside the district, 0.35 inside it, 1 inside the score zone. */
+  get maskTexture(): WebGLTexture {
+    return this.mask.tex;
+  }
+
+  /** Rasterises the district and score-zone rings (cells) into the mask texture; called once per level. */
+  setMask(district: [number, number][], zone: [number, number][]): void {
+    const gl = this.gl;
+    this.maskMesh = this.mesh([{ ring: district, a: 0.35, b: 0 }, { ring: zone, a: 1.0, b: 0 }], 1);
+    this.mask.bind();
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.disable(gl.BLEND);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
+    if (this.maskMesh) {
+      gl.colorMask(false, false, true, false);
+      this.pGround.use().f("uN", this.N);
+      gl.bindVertexArray(this.maskMesh.vao);
+      gl.drawArrays(gl.TRIANGLES, 0, this.maskMesh.count);
+      gl.bindVertexArray(null);
+      gl.colorMask(true, true, true, true);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
   setGround(ground: GroundGeom[]): void {

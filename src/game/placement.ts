@@ -1,4 +1,4 @@
-import type { BakedLevel, LonLat, Plot, Ring } from "./level-types";
+import type { Area, BakedLevel, LonLat, Ring } from "./level-types";
 import { columnsFor, RESIDENTS_PER_FLAT, typology, VOID_DECK_M, type TypologyId } from "./typologies";
 
 /** One player-placed building on a plot. */
@@ -42,12 +42,10 @@ export function homesFor(type: TypologyId, storeys: number, voidDeck: boolean): 
   return Math.round(floors * t.unitsPerFloor * RESIDENTS_PER_FLAT);
 }
 
-/** Storeys allowed on this plot for a typology: typology range, plot cap, and the plot's gross plot ratio. */
-export function storeyRange(plot: Plot, type: TypologyId): { min: number; max: number } {
+/** Storeys allowed for a typology (the typology's own range; plot ratios were dropped in plan v2). */
+export function storeyRange(_area: Area, type: TypologyId): { min: number; max: number } {
   const t = typology(type);
-  const gprCap = plot.areaM2 > 0 ? Math.floor((plot.gpr * plot.areaM2) / t.footprintM2) : t.maxStoreys;
-  const max = Math.max(t.minStoreys, Math.min(t.maxStoreys, plot.maxStoreys, gprCap));
-  return { min: Math.min(t.minStoreys, max), max };
+  return { min: t.minStoreys, max: t.maxStoreys };
 }
 
 export function geometryFor(p: Placed): PlacedGeometry {
@@ -73,8 +71,8 @@ export class Placement {
     for (const cb of this.listeners) cb();
   }
 
-  plot(id: string): Plot | undefined {
-    return this.level.plots.find((p) => p.id === id);
+  plot(id: string): Area | undefined {
+    return this.level.areas.find((p) => p.id === id);
   }
 
   /** Places a default block, or moves the existing one, at a point inside the plot. */

@@ -41,13 +41,19 @@ Upload it to a bucket that supports HTTP range requests and CORS (Cloudflare R2 
 
 ## Bake a level
 
-Levels are pure data. Author `levels/<id>.json` (play-area centre and size, camera, seasons, plot points, targets), then:
+Levels are pure data (schema v2, see [docs/plan-v2.md](docs/plan-v2.md)). Pick a subzone and empty parcels with the survey:
+
+```sh
+node --experimental-strip-types tools/bake/survey.ts "PUNGGOL"
+```
+
+Author `levels/<id>.json` (subzone name, build-area points, tray, heights, seasons, targets), then:
 
 ```sh
 npm run bake -- punggol
 ```
 
-The bake downloads the four data.gov.sg datasets into `data/raw/` on first run (cached, gitignored), joins HDB footprints to storeys, reads non-HDB buildings and footpaths from `data/raw/singapore.pmtiles` (the same Protomaps extract as the basemap fallback; copy it there), tags ground kinds from the Master Plan land-use layer, resolves each plot point to its land-use parcel, and writes `public/levels/<id>.json` plus `public/levels/index.json`. Spike results and data notes: [docs/spikes.md](docs/spikes.md).
+The bake downloads the four data.gov.sg datasets into `data/raw/` on first run (cached, gitignored), joins HDB footprints to storeys, reads non-HDB buildings and footpaths from `data/raw/singapore.pmtiles` (the same Protomaps extract as the basemap fallback; copy it there), tags ground kinds from the Master Plan land-use layer, resolves each build-area point to its Master Plan parcel, outlines the subzone, derives the score zone around the areas, and writes `public/levels/<id>.json` plus `public/levels/index.json`. Spike results and data notes: [docs/spikes.md](docs/spikes.md).
 
 ## Deploy
 

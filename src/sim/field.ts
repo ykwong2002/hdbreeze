@@ -57,7 +57,7 @@ export class HeatField {
 }
 
 /** Streak particles in the webgl-wind style: state texture + fading trail texture. */
-const P = 96; // P*P particles
+const P = 64; // P*P particles
 const PARTICLE_UPDATE_FS = `${GLSL_HEADER}
 uniform sampler2D uState, uVel, uObs;
 uniform ivec2 uN; uniform float uScale, uSpeed, uFrame; uniform int uInit;
@@ -91,7 +91,7 @@ void main() {
   vec2 ndc = s.xy / vec2(uN) * 2.0 - 1.0;
   vAlpha = smoothstep(0.0, 6.0, s.z) * (1.0 - smoothstep(60.0, 100.0, s.z)) * 0.9 + 0.1;
   gl_Position = vec4(ndc, 0.0, 1.0);
-  gl_PointSize = 1.6;
+  gl_PointSize = 1.3;
 }`;
 const POINT_FS = `${GLSL_HEADER}
 in float vAlpha; out vec4 o;

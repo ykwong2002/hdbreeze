@@ -171,6 +171,7 @@ body {
 .town:active { background: #f0eee9; }
 .town strong { font-size: 16px; }
 .town span { font-size: 12px; color: var(--ink-soft); }
+.town em { font-style: normal; font-size: 12px; color: var(--cool); font-weight: 600; }
 
 /* ---- in-level HUD */
 .hud {
