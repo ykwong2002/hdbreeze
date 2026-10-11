@@ -8,6 +8,9 @@ import type { SolverKind } from "./sim/solver";
 import { mountHud } from "./ui/hud";
 import { mountSelect } from "./ui/select";
 import { mountSheet, type Sheet } from "./ui/sheet";
+import { mountScore } from "./ui/score";
+import { mountBubbles, type Bubbles } from "./ui/bubbles";
+import { showEndCard } from "./ui/endcard";
 
 function showUnsupported(): void {
   document.getElementById("unsupported")?.removeAttribute("hidden");
@@ -54,9 +57,18 @@ async function boot(): Promise<void> {
   let session: LevelSession | null = null;
   let hud: ReturnType<typeof mountHud> | null = null;
   let sheet: Sheet | null = null;
+  let score: ReturnType<typeof mountScore> | null = null;
+  let bubbles: Bubbles | null = null;
+  let endcard: { unmount(): void } | null = null;
 
   const leave = (): void => {
-    document.body.classList.remove("sheet-open");
+    document.body.classList.remove("sheet-open", "in-level");
+    endcard?.unmount();
+    endcard = null;
+    bubbles?.unmount();
+    bubbles = null;
+    score?.unmount();
+    score = null;
     sheet?.unmount();
     sheet = null;
     hud?.unmount();
@@ -80,6 +92,22 @@ async function boot(): Promise<void> {
       document.body.classList.toggle("sheet-open", !!pid);
     });
     s.placement.onChange(() => sheet?.refresh());
+    document.body.classList.add("in-level");
+    score = mountScore(ui, s.level.targets.satisfaction, s.level.targets.homes);
+    s.onScore((st) => score?.update(st));
+    bubbles = mountBubbles(ui, hdb.map);
+    s.onSpeech((sp) => bubbles?.say(sp.lonLat(), sp.text, sp.tier, sp.lonLat));
+    s.onCleared(() => {
+      sheet?.close();
+      s.deselect();
+      endcard = showEndCard(ui, {
+        levelName: s.level.name,
+        state: s.scoring.state,
+        stars: s.scoring.stars(),
+        onContinue: () => { endcard = null; },
+        onTowns: () => { endcard = null; leave(); },
+      });
+    });
     (window as unknown as { __session: unknown }).__session = session;
   };
   const select = mountSelect(ui, levels, (id) => void play(id));

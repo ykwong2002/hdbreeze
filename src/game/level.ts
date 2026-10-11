@@ -1,17 +1,31 @@
 import type { MapMouseEvent, MapGeoJSONFeature } from "maplibre-gl";
 import type { HdbMap } from "../map/map";
+import { createAgentsLayer } from "../map/agents-layer";
 import { addLevelLayers, LEVEL_PLOTS_FILL, removeLevelLayers } from "../map/buildings";
 import { createWindOverlay, type WindOverlay } from "../map/overlay-layer";
 import { ensurePlacedLayer, removePlacedLayer, updatePlacedLayer } from "../map/placed";
+import { FIRST_LABEL_LAYER } from "../map/style";
 import type { SolverKind } from "../sim/solver";
 import type { BuildingGeom } from "../sim/obstacles";
+import { Agents, type Agent } from "./agents";
 import type { BakedLevel, LonLat, Season } from "./level-types";
+import { pickLine, tierFor, type Tier } from "./lines";
 import { Placement } from "./placement";
+import { Scoring, type ScoreState } from "./scoring";
+
+export interface Speech {
+  agent: Agent;
+  text: string;
+  tier: Tier;
+  lonLat: () => LonLat;
+}
 
 export interface LevelSession {
   level: BakedLevel;
   overlay: WindOverlay;
   placement: Placement;
+  scoring: Scoring;
+  agents: Agents | null;
   season: Season;
   selectedPlot: string | null;
   setSeason(id: string): void;
@@ -20,10 +34,14 @@ export interface LevelSession {
   selectPlot(id: string, at?: LonLat): void;
   deselect(): void;
   onPlotSelected(cb: (id: string | null) => void): void;
+  onScore(cb: (s: ScoreState) => void): void;
+  onSpeech(cb: (s: Speech) => void): void;
+  onCleared(cb: () => void): void;
   dispose(): void;
 }
 
 const OVERLAY_ID = "wind-overlay";
+const AGENTS_ID = "residents";
 
 export async function loadLevelData(id: string): Promise<BakedLevel> {
   const r = await fetch(`${import.meta.env.BASE_URL}levels/${id}.json`);
@@ -49,18 +67,69 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   map.addLayer(overlay.layer, LEVEL_PLOTS_FILL);
 
   const placement = new Placement(level);
+  const scoring = new Scoring(level.targets.homes, level.targets.satisfaction, level.targets.holdSeconds);
+  let agents: Agents | null = null;
+  const scoreListeners: Array<(s: ScoreState) => void> = [];
+  const speechListeners: Array<(s: Speech) => void> = [];
+  const clearedListeners: Array<() => void> = [];
+
   const pushPlaced = (): void => {
     const geoms = placement.geometries();
     updatePlacedLayer(map, geoms);
     overlay.ready
       .then((sim) => {
         const b: BuildingGeom[] = [];
-        for (const g of geoms) for (const ring of g.obstacleRings) b.push({ ring: ring.map((p) => sim.toCell(p[0], p[1])), heightM: g.heightM, sigma: g.sigma });
+        const voidRings: [number, number][][] = [];
+        for (const g of geoms) {
+          for (const ring of g.obstacleRings) {
+            const cells = ring.map((p) => sim.toCell(p[0], p[1]));
+            b.push({ ring: cells, heightM: g.heightM, sigma: g.sigma });
+            if (g.sigma < 0.5 && g.columns.length) voidRings.push(cells);
+          }
+        }
         sim.setPlacedBuildings(b);
+        agents?.setVoidDecks(voidRings, 70 / sim.metresPerCell);
       })
       .catch(() => {});
   };
   placement.onChange(pushPlaced);
+
+  // residents, scoring and speech run on their own frame loop once the sim exists
+  let raf = 0;
+  let last = performance.now();
+  let nextSpeech = performance.now() + 2500;
+  let lastLine = "";
+  let clearedFired = false;
+  overlay.ready
+    .then((sim) => {
+      agents = new Agents(level, (lon, lat) => sim.toCell(lon, lat), sim.metresPerCell, 40);
+      const ag = agents;
+      map.addLayer(createAgentsLayer(AGENTS_ID, level.bbox, level.grid, () => ag.agents).layer, FIRST_LABEL_LAYER);
+      const loop = (): void => {
+        const now = performance.now();
+        const dt = Math.min(0.1, (now - last) / 1000);
+        last = now;
+        const { meanComfort, meanFeels } = ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
+        const state = scoring.update(dt, meanComfort, meanFeels, placement.totalHomes());
+        for (const cb of scoreListeners) cb(state);
+        if (state.cleared && !clearedFired) {
+          clearedFired = true;
+          for (const cb of clearedListeners) cb();
+        }
+        if (now >= nextSpeech && ag.agents.length && sim.readback.ready) {
+          nextSpeech = now + 1000 + Math.random() * 1000;
+          const a = ag.agents[Math.floor(Math.random() * ag.agents.length)]!;
+          const tier = tierFor(a.comfort);
+          const text = pickLine(tier, lastLine);
+          lastLine = text;
+          const speech: Speech = { agent: a, text, tier, lonLat: () => sim.toLonLat(a.x, a.y) };
+          for (const cb of speechListeners) cb(speech);
+        }
+        raf = requestAnimationFrame(loop);
+      };
+      raf = requestAnimationFrame(loop);
+    })
+    .catch((e: unknown) => console.error("[hdbreeze] sim failed", e));
 
   let season = level.wind.seasons[0]!;
   const applySeason = (): void => {
@@ -89,12 +158,15 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     selectPlot(pid, [e.lngLat.lng, e.lngLat.lat]);
   };
   map.on("click", LEVEL_PLOTS_FILL, onPlotClick);
-  map.on("touchend", LEVEL_PLOTS_FILL, () => {});
 
   return {
     level,
     overlay,
     placement,
+    scoring,
+    get agents() {
+      return agents;
+    },
     get season() {
       return season;
     },
@@ -115,11 +187,14 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     },
     selectPlot,
     deselect: () => setSelected(null),
-    onPlotSelected: (cb) => {
-      selectListeners.push(cb);
-    },
+    onPlotSelected: (cb) => { selectListeners.push(cb); },
+    onScore: (cb) => { scoreListeners.push(cb); },
+    onSpeech: (cb) => { speechListeners.push(cb); },
+    onCleared: (cb) => { clearedListeners.push(cb); },
     dispose() {
+      cancelAnimationFrame(raf);
       map.off("click", LEVEL_PLOTS_FILL, onPlotClick);
+      if (map.getLayer(AGENTS_ID)) map.removeLayer(AGENTS_ID);
       if (map.getLayer(OVERLAY_ID)) map.removeLayer(OVERLAY_ID);
       removePlacedLayer(map);
       removeLevelLayers(map);

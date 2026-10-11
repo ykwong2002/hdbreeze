@@ -1,0 +1,73 @@
+/** Satisfaction score and level-clear logic (docs/plan.md 4.2). */
+export interface ScoreState {
+  /** 0..100, eased. */
+  satisfaction: number;
+  meanFeelsLike: number;
+  homes: number;
+  homesOk: boolean;
+  satisfactionOk: boolean;
+  /** 0..1 progress through the hold window while both conditions are true. */
+  hold: number;
+  cleared: boolean;
+}
+
+export function feelsLikeC(T: number, tMax: number): number {
+  const t = Math.min(1, Math.max(0, T / tMax));
+  const s = t * t * (3 - 2 * t);
+  return 27 + 8 * s;
+}
+
+export function comfortFromFeels(feels: number): number {
+  const t = Math.min(1, Math.max(0, (feels - 27.5) / 7));
+  return 1 - t * t * (3 - 2 * t);
+}
+
+export class Scoring {
+  readonly state: ScoreState;
+  private holdSec = 0;
+
+  constructor(
+    readonly targetHomes: number,
+    readonly threshold: number,
+    readonly holdSeconds: number,
+  ) {
+    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, satisfactionOk: false, hold: 0, cleared: false };
+  }
+
+  update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number): ScoreState {
+    const s = this.state;
+    if (meanComfort !== null) {
+      const target = 100 * meanComfort;
+      const k = 1 - Math.exp(-dt / 1.0);
+      s.satisfaction += (target - s.satisfaction) * k;
+    }
+    if (meanFeels !== null) s.meanFeelsLike += (meanFeels - s.meanFeelsLike) * (1 - Math.exp(-dt / 1.0));
+    s.homes = homes;
+    s.homesOk = homes >= this.targetHomes;
+    s.satisfactionOk = s.satisfaction >= this.threshold;
+    if (s.homesOk && s.satisfactionOk && !s.cleared) {
+      this.holdSec += dt;
+      s.hold = Math.min(1, this.holdSec / this.holdSeconds);
+      if (this.holdSec >= this.holdSeconds) s.cleared = true;
+    } else if (!s.cleared) {
+      this.holdSec = 0;
+      s.hold = 0;
+    }
+    return s;
+  }
+
+  /** 1 star for clearing, 2 for margin >= 8 points or homes >= 1.2x target, 3 for both. */
+  stars(): number {
+    const s = this.state;
+    if (!s.cleared) return 0;
+    const margin = s.satisfaction - this.threshold >= 8;
+    const homes = s.homes >= 1.2 * this.targetHomes;
+    return 1 + (margin ? 1 : 0) + (homes ? 1 : 0);
+  }
+
+  reset(): void {
+    this.holdSec = 0;
+    this.state.hold = 0;
+    this.state.cleared = false;
+  }
+}
