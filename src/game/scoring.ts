@@ -90,7 +90,7 @@ export class Scoring {
   stars(): number {
     const s = this.state;
     if (!s.cleared) return 0;
-    const margin = s.satisfaction >= this.marginStarScore();
+    const margin = Math.round(s.satisfaction) >= this.marginStarScore();
     const homes = s.homes >= 1.2 * this.targetHomes;
     return 1 + (margin ? 1 : 0) + (homes ? 1 : 0);
   }

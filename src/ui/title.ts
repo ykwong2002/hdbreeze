@@ -28,7 +28,6 @@ export function showHowTo(root: HTMLElement): { unmount(): void } {
         <li><span class="howto-ico">🧱</span><span><strong>Tap a block</strong> to turn it, raise it or open its void deck.</span></li>
         <li><span class="howto-ico">🌬️</span><span><strong>Blue is breezy, red is stuffy.</strong> Keep the score above the line.</span></li>
       </ol>
-      <p class="howto-tip">Tip: slabs across the wind make a wall. Turn them along it and open void decks.</p>
       <button class="btn btn-primary howto-ok">Got it</button>
     </div>`;
   root.append(el);

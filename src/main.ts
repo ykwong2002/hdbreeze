@@ -1,6 +1,6 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./style.css";
-import { hasWebGL2, isDevMode } from "./capability";
+import { hasWebGL2, isDevMode, isHarness } from "./capability";
 import { createMap, SINGAPORE_VIEW, type HdbMap } from "./map/map";
 import { startLevel, type LevelSession } from "./game/level";
 import type { LevelIndexEntry } from "./game/level-types";
@@ -44,8 +44,8 @@ async function boot(): Promise<void> {
     return;
   }
 
+  if (isHarness()) (window as unknown as { __hdb: unknown }).__hdb = hdb;
   if (isDevMode()) {
-    (window as unknown as { __hdb: unknown }).__hdb = hdb;
     const status = document.getElementById("status");
     if (status) {
       status.hidden = false;
@@ -143,7 +143,7 @@ async function boot(): Promise<void> {
       });
     });
     (window as unknown as { __session: unknown }).__session = session;
-    if (isDevMode()) {
+    if (isHarness()) {
       // harness hook: auto-fill the tray in a given style (see src/dev/calib.ts)
       (window as unknown as { __fill: unknown }).__fill = async (style: "naive" | "reference") => {
         const { fill } = await import("./dev/calib");

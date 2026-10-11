@@ -20,7 +20,7 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
   const el = document.createElement("section");
   el.className = "endcard";
   const stars = "★".repeat(o.stars) + "☆".repeat(3 - o.stars);
-  const margin = o.state.satisfaction >= o.marginScore;
+  const margin = Math.round(o.state.satisfaction) >= o.marginScore;
   const extra = o.state.homes >= 1.2 * o.targetHomes;
   el.innerHTML = `
     <div class="endcard-box">
@@ -35,9 +35,9 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
       </ul>
       <div class="endcard-btns">
         <button class="btn btn-primary share">Share image</button>
-        <button class="btn share-text">Copy text</button>
         <button class="btn cont">Keep building</button>
         <button class="btn towns">Towns</button>
+        <button class="btn btn-link share-text">copy as text instead</button>
       </div>
       <p class="endcard-note share-note" hidden>Copied to clipboard.</p>
     </div>`;
@@ -48,7 +48,7 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
     if (!l) return;
     el.querySelector<HTMLElement>(".endcard-score strong")!.textContent = l.state.satisfaction.toFixed(0);
     el.querySelector<HTMLElement>(".endcard-stars")!.textContent = "★".repeat(l.stars) + "☆".repeat(3 - l.stars);
-    el.querySelectorAll<HTMLElement>(".endcard-stars-why li")[1]!.className = l.state.satisfaction >= o.marginScore ? "got" : "missed";
+    el.querySelectorAll<HTMLElement>(".endcard-stars-why li")[1]!.className = Math.round(l.state.satisfaction) >= o.marginScore ? "got" : "missed";
   }, 500);
   const stop = (): void => window.clearInterval(live);
   const text = `I ventilated ${o.levelName} in HDBreeze 🌬️ ${stars} satisfaction ${o.state.satisfaction.toFixed(0)}/100, ${o.state.homes.toLocaleString()} residents housed. Can you beat it? ${location.origin}${location.pathname}`;

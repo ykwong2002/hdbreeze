@@ -33,7 +33,7 @@ await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 // dev mode exposes the map and session handles the commands use
-const url = base.includes("?") ? `${base}&dev=1` : `${base}?dev=1`;
+const url = base.includes("?") ? `${base}&harness=1` : `${base}?harness=1`;
 await page.goto(url, { waitUntil: "load", timeout: 90000 });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await wait(2500);
