@@ -6,6 +6,8 @@ export interface EndCardOptions {
   stars: number;
   onContinue(): void;
   onTowns(): void;
+  /** Produces the share image; absent when capture is unavailable. */
+  image?: () => Promise<Blob>;
 }
 
 /** Level-cleared card with a share button (Web Share API, clipboard fallback). */
@@ -20,7 +22,8 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
       <p class="endcard-score"><strong>${o.state.satisfaction.toFixed(0)}</strong> satisfaction · ${o.state.homes.toLocaleString()} residents housed</p>
       <p class="endcard-sub">Feels like ${o.state.meanFeelsLike.toFixed(1)} °C on the walkways.</p>
       <div class="endcard-btns">
-        <button class="btn btn-primary share">Share</button>
+        <button class="btn btn-primary share">Share image</button>
+        <button class="btn share-text">Copy text</button>
         <button class="btn cont">Keep building</button>
         <button class="btn towns">Towns</button>
       </div>
@@ -28,16 +31,24 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
     </div>`;
   root.append(el);
   const text = `I ventilated ${o.levelName} in HDBreeze 🌬️ ${stars} satisfaction ${o.state.satisfaction.toFixed(0)}/100, ${o.state.homes.toLocaleString()} residents housed. Can you beat it? ${location.origin}${location.pathname}`;
-  el.querySelector<HTMLButtonElement>(".share")!.onclick = async () => {
+  const note = el.querySelector<HTMLElement>(".share-note")!;
+  el.querySelector<HTMLButtonElement>(".share-text")!.onclick = async () => {
     const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };
     try {
       if (nav.share) await nav.share({ text });
-      else {
-        await navigator.clipboard.writeText(text);
-        el.querySelector<HTMLElement>(".share-note")!.hidden = false;
-      }
-    } catch {
-      /* user cancelled */
+      else { await navigator.clipboard.writeText(text); note.textContent = "Copied to clipboard."; note.hidden = false; }
+    } catch { /* user cancelled */ }
+  };
+  el.querySelector<HTMLButtonElement>(".share")!.onclick = async () => {
+    try {
+      if (!o.image) throw new Error("no capture");
+      const { shareImage } = await import("../share/capture");
+      const how = await shareImage(await o.image(), text);
+      if (how === "downloaded") { note.textContent = "Image saved. Share it with the text below."; note.hidden = false; }
+    } catch (e) {
+      console.warn("[hdbreeze] image share failed", e);
+      note.textContent = "Could not make the image on this browser; use Copy text.";
+      note.hidden = false;
     }
   };
   el.querySelector<HTMLButtonElement>(".cont")!.onclick = () => { el.remove(); o.onContinue(); };

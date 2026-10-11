@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "deploy": "npx wrangler deploy",
     "shoot": "node tools/shoot/shoot.mjs http://localhost:4173/ shots",
-    "bake": "node --experimental-strip-types tools/bake/bake.ts"
+    "bake": "node --experimental-strip-types tools/bake/bake.ts",
+    "playtest": "node tools/shoot/playtest.mjs"
   },
   "dependencies": {
     "earcut": "^3.2.4",

@@ -1,0 +1,29 @@
+{
+  "id": "tengah",
+  "name": "Tengah",
+  "subzone": "BRICKLAND",
+  "planningArea": "TENGAH",
+  "tagline": "Singapore's newest town, planned around wind from day one.",
+  "brief": "Place all 6 blocks in the highlighted areas. Keep the walkways breezy and house everyone.",
+  "camera": { "zoom": 15.4, "pitch": 55, "bearing": 0 },
+  "wind": {
+    "seasons": [
+      { "id": "ne", "label": "NE monsoon (Dec–Mar)", "fromDeg": 30, "speed": 1.0 },
+      { "id": "sw", "label": "SW monsoon (Jun–Sep)", "fromDeg": 160, "speed": 0.8 }
+    ],
+    "required": ["ne"]
+  },
+  "areas": [
+    { "id": "a", "label": "Brickland, west", "at": [103.74032, 1.36718] },
+    { "id": "b", "label": "Brickland, central", "at": [103.74187, 1.36838] },
+    { "id": "c", "label": "Brickland, east", "at": [103.74546, 1.36832] }
+  ],
+  "tray": [
+    { "type": "slab", "count": 2 },
+    { "type": "l", "count": 2 },
+    { "type": "point", "count": 2 }
+  ],
+  "heights": { "low": 8, "mid": 16, "high": 30 },
+  "hotspots": [[103.7430, 1.3680]],
+  "targets": { "satisfaction": 72, "holdSeconds": 4 }
+}

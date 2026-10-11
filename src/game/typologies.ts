@@ -55,7 +55,7 @@ const L: [number, number][] = [
 ];
 
 export const TYPOLOGIES: Typology[] = [
-  define({ id: "slab", label: "Slab block", short: "Slab", parts: [rect(0, 0, 70, 14)], rects: [{ cx: 0, cy: 0, w: 70, h: 14 }], unitsPerFloor: 8, minStoreys: 10, maxStoreys: 16, residential: true, sigma: 1, storeyM: 3 }),
+  define({ id: "slab", label: "Slab block", short: "Slab", parts: [rect(0, 0, 54, 13)], rects: [{ cx: 0, cy: 0, w: 54, h: 13 }], unitsPerFloor: 7, minStoreys: 10, maxStoreys: 16, residential: true, sigma: 1, storeyM: 3 }),
   define({ id: "point", label: "Point block", short: "Point", parts: [PLUS], rects: [{ cx: 0, cy: 0, w: 12, h: 26 }, { cx: 0, cy: 0, w: 26, h: 12 }], unitsPerFloor: 6, minStoreys: 20, maxStoreys: 50, residential: true, sigma: 1, storeyM: 3 }),
   define({ id: "l", label: "L / staggered block", short: "L-block", parts: [L], rects: [{ cx: 7, cy: -6, w: 40, h: 14 }, { cx: -6, cy: 7, w: 14, h: 40 }], unitsPerFloor: 6, minStoreys: 12, maxStoreys: 30, residential: true, sigma: 1, storeyM: 3 }),
   define({

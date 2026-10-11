@@ -1,7 +1,7 @@
 import type { LevelSession } from "../game/level";
 
 /** In-level chrome for M1: season toggle + back. Score and homes arrive in M3. */
-export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void): { update(): void; unmount(): void } {
+export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void, onHelp: () => void): { update(): void; unmount(): void } {
   const bar = document.createElement("div");
   bar.className = "hud";
   const back = document.createElement("button");
@@ -19,20 +19,27 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
     session.nextSeason();
     update();
   };
+  const help = document.createElement("button");
+  help.className = "chip";
+  help.textContent = "?";
+  help.setAttribute("aria-label", "How to play");
+  help.onclick = onHelp;
   const dev = document.createElement("span");
   dev.className = "devstats";
-  bar.append(back, seasonBtn, dev);
+  bar.append(back, seasonBtn, help, dev);
   root.append(bar);
 
   const update = (): void => {
     label.textContent = session.season.label.split(" (")[0] ?? session.season.label;
+    seasonBtn.classList.toggle("season-done", session.scoring.state.held.includes(session.season.id));
+    seasonBtn.classList.toggle("season-required", session.level.wind.required.length > 1);
     // the arrow points where the wind goes: from fromDeg toward fromDeg + 180
     arrow.style.transform = `rotate(${session.season.fromDeg + 180 - 90}deg)`;
   };
   update();
   const devMode = new URLSearchParams(location.search).has("dev");
   const timer = window.setInterval(() => {
-      if (label.textContent !== session.season.label) update();
+      update();
       if (!devMode) return;
       const sim = session.overlay.sim;
       const s = sim?.lastStats;

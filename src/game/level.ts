@@ -12,7 +12,7 @@ import type { BakedLevel, LonLat, Season } from "./level-types";
 import { pickLine, tierFor, type Tier } from "./lines";
 import { Blocks, type PlaceResult } from "./blocks";
 import type { TypologyId } from "./typologies";
-import { Scoring, type ScoreState } from "./scoring";
+import { comfortFromFeels, feelsLikeC, Scoring, type ScoreState } from "./scoring";
 
 export interface Speech {
   agent: Agent;
@@ -39,6 +39,7 @@ export interface LevelSession {
   select(id: string | null): void;
   onSelection(cb: (id: string | null) => void): void;
   onReject(cb: (reason: string) => void): void;
+  onHint(cb: (text: string) => void): void;
   onScore(cb: (s: ScoreState) => void): void;
   onSpeech(cb: (s: Speech) => void): void;
   onCleared(cb: () => void): void;
@@ -73,6 +74,8 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
 
   const blocks = new Blocks(level);
   const scoring = new Scoring(level.targets.homes, level.targets.satisfaction, level.targets.holdSeconds);
+  scoring.required = level.wind.required;
+  const hintListeners: Array<(text: string) => void> = [];
   let selected: string | null = null;
   const self = { trayType: null as TypologyId | null, moveMode: () => false };
   let agents: Agents | null = null;
@@ -96,14 +99,18 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
         }
         sim.setPlacedBuildings(b);
         agents?.setVoidDecks(voidRings, 70 / sim.metresPerCell);
+        samplePtsDirty = true;
       })
       .catch(() => {});
   };
   blocks.onChange(pushPlaced);
+  blocks.onChange(() => scoring.invalidateHolds());
 
   // residents, scoring and speech run on their own frame loop once the sim exists
   let raf = 0;
   let last = performance.now();
+  let samplePts: [number, number][] | null = null;
+  let samplePtsDirty = true;
   let nextSpeech = performance.now() + 2500;
   let lastLine = "";
   let clearedFired = false;
@@ -113,10 +120,31 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
       const ag = agents;
       map.addLayer(createAgentsLayer(AGENTS_ID, level.bbox, level.grid, () => ag.agents).layer, FIRST_LABEL_LAYER);
       const loop = (): void => {
+        try { tick(); } catch (e) { console.error("[hdbreeze] frame loop", e); }
+        raf = requestAnimationFrame(loop);
+      };
+      const tick = (): void => {
         const now = performance.now();
         const dt = Math.min(0.1, (now - last) / 1000);
         last = now;
-        const { meanComfort, meanFeels } = ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
+        ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
+        // score from fixed walkway sample points (deterministic); residents are the visible crowd
+        let meanComfort: number | null = null, meanFeels: number | null = null;
+        if (sim.readback.ready) {
+          if (!samplePts || samplePtsDirty) {
+            const rings = blocks.geometries().flatMap((g) => g.obstacleRings.map((r) => r.map((p) => sim.toCell(p[0], p[1]))));
+            samplePts = ag.samplePoints(rings);
+            samplePtsDirty = false;
+          }
+          let c = 0, f = 0, n = 0;
+          for (const [x, y] of samplePts) {
+            const T = sim.readback.sample(x, y, sim.n);
+            if (T === null) continue;
+            const feels = feelsLikeC(T, sim.vis.tMax);
+            c += comfortFromFeels(feels); f += feels; n++;
+          }
+          if (n) { meanComfort = c / n; meanFeels = f / n; }
+        }
         const state = scoring.update(dt, meanComfort, meanFeels, blocks.homes(), blocks.blocks.length, blocks.total());
         for (const cb of scoreListeners) cb(state);
         if (state.cleared && !clearedFired) {
@@ -132,17 +160,26 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
           const speech: Speech = { agent: a, text, tier, lonLat: () => sim.toLonLat(a.x, a.y) };
           for (const cb of speechListeners) cb(speech);
         }
-        raf = requestAnimationFrame(loop);
       };
       raf = requestAnimationFrame(loop);
     })
     .catch((e: unknown) => console.error("[hdbreeze] sim failed", e));
 
-  let season = level.wind.seasons[0]!;
+  let season = level.wind.seasons.find((x) => x.id === level.wind.required[0]) ?? level.wind.seasons[0]!;
   const applySeason = (): void => {
+    scoring.season = season.id;
     overlay.ready.then((sim) => sim.setWind(season.fromDeg, season.speed)).catch(() => {});
   };
   applySeason();
+  scoring.onSeasonHeld = (held) => {
+    const next = level.wind.required.find((r) => !scoring.state.held.includes(r));
+    if (!next) return;
+    const ns = level.wind.seasons.find((x) => x.id === next);
+    if (!ns) return;
+    season = ns;
+    applySeason();
+    for (const cb of hintListeners) cb(`Held it in the ${held.toUpperCase()} monsoon. The wind turned: now keep it breezy in the ${next.toUpperCase()} monsoon.`);
+  };
 
   const selectListeners: Array<(id: string | null) => void> = [];
   const select = (idOrNull: string | null): void => {
@@ -219,6 +256,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     select,
     onSelection: (cb) => { selectListeners.push(cb); },
     onReject: (cb) => { rejectListeners.push(cb); },
+    onHint: (cb) => { hintListeners.push(cb); },
     onScore: (cb) => { scoreListeners.push(cb); },
     onSpeech: (cb) => { speechListeners.push(cb); },
     onCleared: (cb) => { clearedListeners.push(cb); },

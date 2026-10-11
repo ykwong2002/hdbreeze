@@ -12,6 +12,8 @@ export interface ScoreState {
   /** 0..1 progress through the hold window while both conditions are true. */
   hold: number;
   cleared: boolean;
+  /** Seasons whose hold has been completed. */
+  held: string[];
 }
 
 export function feelsLikeC(T: number, tMax: number): number {
@@ -29,35 +31,52 @@ export class Scoring {
   readonly state: ScoreState;
   private holdSec = 0;
 
+  /** Season currently being held; set by the level. */
+  season = "";
+  /** Seasons that must each pass the hold. */
+  required: string[] = [];
+  /** Fires when a season's hold completes. */
+  onSeasonHeld: ((season: string) => void) | null = null;
+
   constructor(
     readonly targetHomes: number,
     readonly threshold: number,
     readonly holdSeconds: number,
   ) {
-    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, satisfactionOk: false, hold: 0, cleared: false };
+    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, satisfactionOk: false, hold: 0, cleared: false, held: [] };
   }
 
   update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number, placed = 0, toPlace = 0): ScoreState {
     const s = this.state;
+    // eddies shed behind blocks make the instantaneous field flicker; average over a few seconds
+    const tau = this.state.satisfaction === 0 && meanComfort !== null ? 0.3 : 4.0;
     if (meanComfort !== null) {
       const target = 100 * meanComfort;
-      const k = 1 - Math.exp(-dt / 1.0);
+      const k = 1 - Math.exp(-dt / tau);
       s.satisfaction += (target - s.satisfaction) * k;
     }
-    if (meanFeels !== null) s.meanFeelsLike += (meanFeels - s.meanFeelsLike) * (1 - Math.exp(-dt / 1.0));
+    if (meanFeels !== null) s.meanFeelsLike += (meanFeels - s.meanFeelsLike) * (1 - Math.exp(-dt / tau));
     s.homes = homes;
     s.homesOk = homes >= this.targetHomes;
     s.placed = placed;
     s.toPlace = toPlace;
     s.allPlaced = toPlace > 0 && placed >= toPlace;
     s.satisfactionOk = s.satisfaction >= this.threshold;
-    if (s.allPlaced && s.homesOk && s.satisfactionOk && !s.cleared) {
+    const alreadyHeld = s.held.includes(this.season);
+    if (s.allPlaced && s.homesOk && s.satisfactionOk && !s.cleared && !alreadyHeld) {
       this.holdSec += dt;
       s.hold = Math.min(1, this.holdSec / this.holdSeconds);
-      if (this.holdSec >= this.holdSeconds) s.cleared = true;
+      if (this.holdSec >= this.holdSeconds) {
+        s.held.push(this.season);
+        this.holdSec = 0;
+        s.hold = 0;
+        const remaining = this.required.filter((r) => !s.held.includes(r));
+        if (remaining.length === 0) s.cleared = true;
+        this.onSeasonHeld?.(this.season);
+      }
     } else if (!s.cleared) {
       this.holdSec = 0;
-      s.hold = 0;
+      s.hold = alreadyHeld ? 1 : 0;
     }
     return s;
   }
@@ -71,9 +90,15 @@ export class Scoring {
     return 1 + (margin ? 1 : 0) + (homes ? 1 : 0);
   }
 
-  reset(): void {
+  /** A layout change invalidates earlier season holds. */
+  invalidateHolds(): void {
     this.holdSec = 0;
     this.state.hold = 0;
+    this.state.held = [];
+  }
+
+  reset(): void {
+    this.invalidateHolds();
     this.state.cleared = false;
   }
 }

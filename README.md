@@ -55,6 +55,10 @@ npm run bake -- punggol
 
 The bake downloads the four data.gov.sg datasets into `data/raw/` on first run (cached, gitignored), joins HDB footprints to storeys, reads non-HDB buildings and footpaths from `data/raw/singapore.pmtiles` (the same Protomaps extract as the basemap fallback; copy it there), tags ground kinds from the Master Plan land-use layer, resolves each build-area point to its Master Plan parcel, outlines the subzone, derives the score zone around the areas, and writes `public/levels/<id>.json` plus `public/levels/index.json`. Spike results and data notes: [docs/spikes.md](docs/spikes.md).
 
+## Calibrate a level
+
+Open `?dev=1&calib=1&level=<id>` on the built site (or `npm run preview`). The harness fills the level three ways per required season, empty, naive (every block high, slabs across the wind, no void decks) and reference (slabs along the wind, void decks on), waits for the score to settle and prints a table with a suggested threshold. Put the chosen threshold in `levels/<id>.json` under `targets.satisfaction` and re-bake.
+
 ## Deploy
 
 Static site on Cloudflare Workers (static assets, no Worker code): in the Cloudflare dashboard create a Worker from the GitHub repo with build command `npm run build` and deploy command `npx wrangler deploy`; `wrangler.jsonc` points it at `dist/`. Add `VITE_PMTILES_URL` as a build variable if you host the basemap fallback. `npm run deploy` does the same from a local build.

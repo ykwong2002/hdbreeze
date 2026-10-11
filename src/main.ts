@@ -12,6 +12,8 @@ import { mountToolbar, type Toolbar } from "./ui/toolbar";
 import { mountScore } from "./ui/score";
 import { mountBubbles, type Bubbles } from "./ui/bubbles";
 import { showEndCard } from "./ui/endcard";
+import { showHowTo, showTitle } from "./ui/title";
+import { mountOnboarding } from "./ui/onboarding";
 
 function showUnsupported(): void {
   document.getElementById("unsupported")?.removeAttribute("hidden");
@@ -62,11 +64,14 @@ async function boot(): Promise<void> {
   let score: ReturnType<typeof mountScore> | null = null;
   let bubbles: Bubbles | null = null;
   let endcard: { unmount(): void } | null = null;
+  let onboarding: { unmount(): void } | null = null;
 
   const leave = (): void => {
     document.body.classList.remove("in-level");
     endcard?.unmount();
     endcard = null;
+    onboarding?.unmount();
+    onboarding = null;
     bubbles?.unmount();
     bubbles = null;
     score?.unmount();
@@ -86,7 +91,7 @@ async function boot(): Promise<void> {
   const play = async (id: string): Promise<void> => {
     select.hide();
     session = await startLevel(hdb, id, solverKind());
-    hud = mountHud(ui, session, leave);
+    hud = mountHud(ui, session, leave, () => showHowTo(ui));
     const s = session;
     tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; });
     toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));
@@ -96,6 +101,24 @@ async function boot(): Promise<void> {
       else toolbar?.hide();
     });
     s.onReject(() => tray?.shake());
+    onboarding = mountOnboarding(ui, s);
+    s.onHint((text) => {
+      const h = document.createElement("div");
+      h.className = "hint";
+      h.textContent = text;
+      ui.append(h);
+      window.setTimeout(() => h.remove(), 6000);
+    });
+    if (new URLSearchParams(location.search).has("calib")) {
+      const { runCalibration } = await import("./dev/calib");
+      const box = document.createElement("pre");
+      box.className = "calib";
+      box.textContent = "calibrating…\n";
+      ui.append(box);
+      await s.overlay.ready;
+      await new Promise((r) => setTimeout(r, 3000));
+      void runCalibration(s, (line) => { box.textContent += line + "\n"; console.log("[calib]", line); });
+    }
     document.body.classList.add("in-level");
     score = mountScore(ui, s.level.targets.satisfaction, s.level.targets.homes);
     s.onScore((st) => score?.update(st));
@@ -109,18 +132,34 @@ async function boot(): Promise<void> {
         stars: s.scoring.stars(),
         onContinue: () => { endcard = null; },
         onTowns: () => { endcard = null; leave(); },
+        image: async () => {
+          const { captureShareImage } = await import("./share/capture");
+          return captureShareImage(hdb.map, { levelName: s.level.name, state: s.scoring.state, stars: s.scoring.stars() });
+        },
       });
     });
     (window as unknown as { __session: unknown }).__session = session;
+    if (isDevMode()) {
+      // harness hook: auto-fill the tray in a given style (see src/dev/calib.ts)
+      (window as unknown as { __fill: unknown }).__fill = async (style: "naive" | "reference") => {
+        const { fill } = await import("./dev/calib");
+        if (session) fill(session, style);
+      };
+    }
   };
   const select = mountSelect(ui, levels, (id) => void play(id));
 
   const deep = new URLSearchParams(location.search).get("level");
-  const start = (): void => {
-    if (deep && levels.some((l) => l.id === deep)) void play(deep);
-  };
-  if (hdb.map.loaded()) start();
-  else hdb.map.once("load", start);
+  if (deep && levels.some((l) => l.id === deep)) {
+    select.hide();
+    const start = (): void => void play(deep);
+    if (hdb.map.loaded()) start();
+    else hdb.map.once("load", start);
+  } else {
+    // title first, before tiles arrive; the picker shows when the player taps Start
+    select.hide();
+    showTitle(ui, () => select.show());
+  }
 }
 
 void boot();
