@@ -53,7 +53,7 @@ export class WindSim {
     this.raster.kWakeCells = 2.5 / this.metresPerCell;
     const obs = this.raster.texture;
     this.params = opts.solver === "lbm"
-      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 50, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 4 }
+      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 50, jacobi: 20, vorticity: 0, tau: 0.6, substeps: 4 }
       : { fromDeg: 30, speed: 1, lambda: 0.01, kDrag: 50, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
     this.solver = opts.solver === "lbm" ? new LatticeBoltzmann(gl, this.fmt, obs, this.n) : new StableFluids(gl, this.fmt, obs, this.n);
     this.heat = new HeatField(gl, this.fmt, obs, this.n);
@@ -80,9 +80,11 @@ export class WindSim {
   }
 
   setWind(fromDeg: number, speed: number): void {
+    const changed = fromDeg !== this.params.fromDeg || speed !== this.params.speed;
     this.params.fromDeg = fromDeg;
     this.params.speed = speed;
     this.raster.setWind(windVector(fromDeg));
+    if (changed) this.solver.setFreeStream?.();
   }
 
   reset(): void {

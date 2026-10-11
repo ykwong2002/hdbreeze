@@ -7,6 +7,7 @@ import type { LevelIndexEntry } from "./game/level-types";
 import type { SolverKind } from "./sim/solver";
 import { mountHud } from "./ui/hud";
 import { mountSelect } from "./ui/select";
+import { mountSheet, type Sheet } from "./ui/sheet";
 
 function showUnsupported(): void {
   document.getElementById("unsupported")?.removeAttribute("hidden");
@@ -52,8 +53,12 @@ async function boot(): Promise<void> {
   const levels = (await (await fetch(`${import.meta.env.BASE_URL}levels/index.json`)).json()) as LevelIndexEntry[];
   let session: LevelSession | null = null;
   let hud: ReturnType<typeof mountHud> | null = null;
+  let sheet: Sheet | null = null;
 
   const leave = (): void => {
+    document.body.classList.remove("sheet-open");
+    sheet?.unmount();
+    sheet = null;
     hud?.unmount();
     hud = null;
     session?.dispose();
@@ -66,6 +71,15 @@ async function boot(): Promise<void> {
     select.hide();
     session = await startLevel(hdb, id, solverKind());
     hud = mountHud(ui, session, leave);
+    const s = session;
+    sheet = mountSheet(ui, s.placement, () => s.deselect());
+    s.onPlotSelected((pid) => {
+      if (pid) sheet?.open(pid);
+      else sheet?.close();
+      document.querySelector(".hud")?.classList.toggle("with-sheet", !!pid);
+      document.body.classList.toggle("sheet-open", !!pid);
+    });
+    s.placement.onChange(() => sheet?.refresh());
     (window as unknown as { __session: unknown }).__session = session;
   };
   const select = mountSelect(ui, levels, (id) => void play(id));

@@ -85,11 +85,32 @@ void main() {
   if (texelFetch(uObs, c, 0).r > 0.99) { o0 = vec4(0.0); o1 = vec4(0.0); o2 = vec4(0.0); return; }
   ivec2 inward; int bt = boundaryType(c, uN, uW, inward);
   if (bt == 1) { for (int i = 0; i < 9; i++) d[i] = deq(i, 1.0, uW); }
-  else if (bt == 2) { pull(c + inward, d); }
+  else if (bt == 2) {
+    // open outflow: equilibrium at ambient density with the neighbour's velocity (absorbs pressure waves)
+    vec2 un = texelFetch(uMacro, c + inward, 0).xy;
+    for (int i = 0; i < 9; i++) d[i] = deq(i, 1.0, un);
+  }
   else { pull(c, d); }
   o0 = vec4(d[0], d[1], d[2], d[3]);
   o1 = vec4(d[4], d[5], d[6], d[7]);
   o2 = vec4(d[8], 0.0, 0.0, 0.0);
+}`;
+
+/** Writes the free-stream equilibrium everywhere so a reset or wind change does not launch a pressure wave. */
+const INIT_FS = `${GLSL_HEADER}${GLSL_LATTICE}
+uniform sampler2D uObs; uniform vec2 uW;
+layout(location = 0) out vec4 o0;
+layout(location = 1) out vec4 o1;
+layout(location = 2) out vec4 o2;
+layout(location = 3) out vec4 o3;
+void main() {
+  ivec2 c = ivec2(gl_FragCoord.xy);
+  if (texelFetch(uObs, c, 0).r > 0.99) { o0 = vec4(0.0); o1 = vec4(0.0); o2 = vec4(0.0); o3 = vec4(0.0, 0.0, 1.0, 0.0); return; }
+  float d[9]; for (int i = 0; i < 9; i++) d[i] = deq(i, 1.0, uW);
+  o0 = vec4(d[0], d[1], d[2], d[3]);
+  o1 = vec4(d[4], d[5], d[6], d[7]);
+  o2 = vec4(d[8], 0.0, 0.0, 0.0);
+  o3 = vec4(uW, 1.0, 0.0);
 }`;
 
 export class LatticeBoltzmann implements Solver {
@@ -99,6 +120,8 @@ export class LatticeBoltzmann implements Solver {
   private f: PingPong; // 4 attachments: F0, F1, F2, macro (ux, uy, rho)
   private collide: Program;
   private stream: Program;
+  private init: Program;
+  private pendingInit: [number, number] | null = [0, 0];
 
   constructor(
     private gl: GL,
@@ -109,6 +132,7 @@ export class LatticeBoltzmann implements Solver {
     this.f = new PingPong(gl, N, N, fmt, gl.NEAREST, 4);
     this.collide = new Program(gl, QUAD_VS, COLLIDE_FS);
     this.stream = new Program(gl, QUAD_VS, STREAM_FS);
+    this.init = new Program(gl, QUAD_VS, INIT_FS);
   }
 
   get velocity(): WebGLTexture {
@@ -120,8 +144,13 @@ export class LatticeBoltzmann implements Solver {
   }
 
   reset(): void {
-    this.f.clear(); // deltas of zero = rest state at rho 1
+    this.pendingInit = [0, 0];
     this.steps = 0;
+  }
+
+  /** Re-seeds the lattice at the new free stream; the field then relaxes around the obstacles. */
+  setFreeStream(): void {
+    this.pendingInit = [0, 0];
   }
 
   step(p: WindParams): void {
@@ -129,6 +158,14 @@ export class LatticeBoltzmann implements Solver {
     const N = this.N;
     const [wx, wy] = windVector(p.fromDeg);
     const W: [number, number] = [wx * p.speed * U_MAX, wy * p.speed * U_MAX];
+    if (this.pendingInit) {
+      this.pendingInit = null;
+      for (const fbo of [this.f.read, this.f.write]) {
+        fbo.bind();
+        this.init.use().tex("uObs", 0, this.obs).v2("uW", W[0], W[1]);
+        drawQuad(gl);
+      }
+    }
 
     // collide: read f, write f* (+ macro)
     this.f.write.bind();

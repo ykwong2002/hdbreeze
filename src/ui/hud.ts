@@ -19,17 +19,21 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
     session.nextSeason();
     update();
   };
+  const homesChip = document.createElement("span");
+  homesChip.className = "chip chip-homes";
   const dev = document.createElement("span");
   dev.className = "devstats";
-  bar.append(back, seasonBtn, dev);
+  bar.append(back, seasonBtn, homesChip, dev);
   root.append(bar);
 
   const update = (): void => {
-    label.textContent = session.season.label;
+    homesChip.textContent = `🏠 ${session.placement.totalHomes().toLocaleString()} / ${session.level.targets.homes.toLocaleString()}`;
+    label.textContent = session.season.label.split(" (")[0] ?? session.season.label;
     // the arrow points where the wind goes: from fromDeg toward fromDeg + 180
     arrow.style.transform = `rotate(${session.season.fromDeg + 180 - 90}deg)`;
   };
   update();
+  session.placement.onChange(update);
   const devMode = new URLSearchParams(location.search).has("dev");
   const timer = window.setInterval(() => {
       if (label.textContent !== session.season.label) update();

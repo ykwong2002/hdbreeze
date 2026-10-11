@@ -186,9 +186,9 @@ body {
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  font: 600 14px/1 inherit;
+  gap: 6px;
+  padding: 9px 12px;
+  font: 600 13px/1 inherit;
   color: var(--ink);
   background: var(--card);
   border: 1px solid #e3dfd7;
@@ -199,4 +199,40 @@ body {
   cursor: pointer;
 }
 .chip-wind .arrow { display: inline-block; color: var(--cool); transition: transform 0.6s ease; }
-.devstats { font: 11px/1.2 ui-monospace, Menlo, monospace; color: var(--ink-soft); }
+.devstats { flex-basis: 100%; font: 11px/1.2 ui-monospace, Menlo, monospace; color: var(--ink-soft); }
+
+/* ---- bottom sheet (M2) */
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  padding: 10px 14px calc(12px + var(--safe-bottom));
+  background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.14);
+}
+.sheet[hidden] { display: none; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.sheet-title { font-size: 15px; }
+.sheet-sub { font-size: 12px; color: var(--ink-soft); }
+.sheet-close, .sheet-clear { font: 600 13px/1 inherit; padding: 9px 12px; border-radius: 999px; border: 1px solid #e3dfd7; background: #fff; color: var(--ink); }
+.sheet-close { background: var(--cool); border-color: var(--cool); color: #fff; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 6px; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip-type { flex: 0 0 auto; padding: 8px 12px; font-size: 13px; box-shadow: none; }
+.chip-type.on { background: var(--cool); border-color: var(--cool); color: #fff; }
+.sheet .row { display: grid; grid-template-columns: 72px 1fr 56px; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
+.sheet .row input[type="range"] { width: 100%; height: 28px; }
+.sheet .row output { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+.sheet .switch { grid-template-columns: 1fr auto; }
+.sheet .switch small { display: block; color: var(--ink-soft); font-size: 11px; }
+.sheet .switch input { width: 44px; height: 24px; }
+.sheet-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-size: 13px; }
+.homes { font-weight: 600; }
+.hud.with-sheet { bottom: auto; top: calc(66px + var(--safe-top)); }
+body.sheet-open .legal, body.sheet-open .status, body.sheet-open .maplibregl-ctrl-bottom-right { display: none; }
+.chip-homes { font-variant-numeric: tabular-nums; }

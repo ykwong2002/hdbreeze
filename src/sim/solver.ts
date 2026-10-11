@@ -29,6 +29,9 @@ export interface Solver {
   reset(): void;
   /** Substeps run so far since reset, for convergence logging. */
   readonly steps: number;
+  setObstacles(tex: WebGLTexture): void;
+  /** Optional: re-seed the field at the current free stream (after a wind change). */
+  setFreeStream?(): void;
 }
 
 /** Wind vector in grid units (x east, y north) for a unit speed. */

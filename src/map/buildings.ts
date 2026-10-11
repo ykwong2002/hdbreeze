@@ -24,6 +24,7 @@ export function addLevelLayers(map: MlMap, level: BakedLevel): void {
   });
   map.addSource("level-plots", {
     type: "geojson",
+    promoteId: "id",
     data: {
       type: "FeatureCollection",
       features: level.plots.map((p) => ({
@@ -39,7 +40,7 @@ export function addLevelLayers(map: MlMap, level: BakedLevel): void {
       id: LEVEL_PLOTS_FILL,
       type: "fill",
       source: "level-plots",
-      paint: { "fill-color": "#2a9d9f", "fill-opacity": 0.18 },
+      paint: { "fill-color": "#2a9d9f", "fill-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.38, 0.16] },
     },
     FIRST_LABEL_LAYER,
   );
