@@ -24,11 +24,11 @@ export function showHowTo(root: HTMLElement): { unmount(): void } {
     <div class="howto-box">
       <h2>How to play</h2>
       <ol>
-        <li><span class="howto-ico">👆</span><span><strong>Tap a highlighted area</strong> to drop the selected block from the tray. Place every block.</span></li>
-        <li><span class="howto-ico">🧱</span><span><strong>Tap a block</strong> to rotate it, change its height, open its void deck, move it or remove it.</span></li>
-        <li><span class="howto-ico">🌬️</span><span><strong>Blue is breezy, red is stuffy.</strong> Residents walk the paths near your areas; keep them cool, keep everyone housed, and hold the score above the line.</span></li>
+        <li><span class="howto-ico">👆</span><span><strong>Tap a glowing area</strong> to drop a block. Place them all.</span></li>
+        <li><span class="howto-ico">🧱</span><span><strong>Tap a block</strong> to turn it, raise it or open its void deck.</span></li>
+        <li><span class="howto-ico">🌬️</span><span><strong>Blue is breezy, red is stuffy.</strong> Keep the score above the line.</span></li>
       </ol>
-      <p class="howto-tip">Tip: long slabs across the wind build a wall. Turn them along the wind, open void decks, and step heights down toward the breeze.</p>
+      <p class="howto-tip">Tip: slabs across the wind make a wall. Turn them along it and open void decks.</p>
       <button class="btn btn-primary howto-ok">Got it</button>
     </div>`;
   root.append(el);

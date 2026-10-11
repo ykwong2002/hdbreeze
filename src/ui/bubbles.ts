@@ -22,8 +22,11 @@ export function mountBubbles(root: HTMLElement, map: MlMap, headOffsetPx = 26): 
         follow = null;
       } else {
         const p = map.project(ll);
-        const onScreen = p.x > 0 && p.y > 0 && p.x < map.getContainer().clientWidth && p.y < map.getContainer().clientHeight;
-        el.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${(p.y - headOffsetPx).toFixed(1)}px)`;
+        const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
+        const onScreen = p.x > 0 && p.y > 0 && p.x < w && p.y < h;
+        const half = el.offsetWidth / 2 + 6;
+        const x = Math.max(half, Math.min(w - half, p.x));
+        el.style.transform = `translate(-50%, -100%) translate(${x.toFixed(1)}px, ${(p.y - headOffsetPx).toFixed(1)}px)`;
         el.style.visibility = onScreen ? "visible" : "hidden";
       }
     }

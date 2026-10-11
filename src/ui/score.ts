@@ -7,7 +7,8 @@ export function mountScore(root: HTMLElement, threshold: number, targetHomes: nu
   card.innerHTML = `
     <div class="score-top"><span class="score-num">–</span><span class="score-label">satisfaction<br><small class="feels"></small></span></div>
     <div class="score-bar"><div class="score-fill"></div><div class="score-tick" style="left:${threshold}%"></div><div class="score-hold"></div></div>
-    <div class="score-foot"><span class="score-homes"></span><span class="score-blocks"></span><span class="score-hint">Clear: all blocks placed, ${targetHomes.toLocaleString()} housed, ${threshold}+ for a few seconds</span></div>`;
+    <div class="score-foot"><span class="score-homes"></span><span class="score-blocks"></span><span class="score-hint">Goal: place every block, house ${targetHomes.toLocaleString()} people, keep the score above ${threshold}.</span></div>
+    <div class="legend"><span>breezy</span><span class="legend-bar"></span><span>stuffy</span></div>`;
   root.append(card);
   const num = card.querySelector<HTMLElement>(".score-num")!;
   const fill = card.querySelector<HTMLElement>(".score-fill")!;

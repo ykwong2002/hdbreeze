@@ -17,7 +17,7 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
   el.hidden = true;
   el.innerHTML = `
     <button class="tb rotate" title="Rotate">⟳<small>rotate</small></button>
-    <button class="tb height" title="Height">▲<small>mid</small></button>
+    <button class="tb height" title="Height"><span class="tb-st">16</span><small>height</small></button>
     <button class="tb void" title="Void deck">⌂<small>void deck</small></button>
     <button class="tb move" title="Move">✥<small>move</small></button>
     <button class="tb remove" title="Remove">✕<small>remove</small></button>`;
@@ -41,7 +41,8 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
     const b: Block | undefined = blocks.get(id);
     if (!b) { hide(); return; }
     const t = typology(b.type);
-    q<HTMLElement>(".height small").textContent = t.residential ? `${blocks.storeys(b)} st` : "fixed";
+    q<HTMLElement>(".height .tb-st").textContent = t.residential ? `${blocks.storeys(b)}` : "–";
+    q<HTMLElement>(".height small").textContent = t.residential ? `${b.height} · storeys` : "fixed";
     q<HTMLButtonElement>(".height").disabled = !t.residential;
     q<HTMLButtonElement>(".void").disabled = !t.residential;
     q<HTMLButtonElement>(".void").classList.toggle("on", b.voidDeck);
@@ -53,7 +54,10 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
       const b = blocks.get(id);
       if (b) {
         const p = map.project(b.center);
-        el.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${(p.y - 28).toFixed(1)}px)`;
+        const half = el.offsetWidth / 2 + 8;
+        const x = Math.max(half, Math.min(window.innerWidth - half, p.x));
+        const y = Math.max(el.offsetHeight + 70, Math.min(window.innerHeight - 140, p.y - 28));
+        el.style.transform = `translate(-50%, -100%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
       }
     }
     raf = requestAnimationFrame(tick);

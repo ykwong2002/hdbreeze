@@ -130,6 +130,10 @@ async function boot(): Promise<void> {
         levelName: s.level.name,
         state: s.scoring.state,
         stars: s.scoring.stars(),
+        threshold: s.level.targets.satisfaction,
+        targetHomes: s.level.targets.homes,
+        marginScore: s.scoring.marginStarScore(),
+        live: () => ({ state: s.scoring.state, stars: s.scoring.stars() }),
         onContinue: () => { endcard = null; },
         onTowns: () => { endcard = null; leave(); },
         image: async () => {

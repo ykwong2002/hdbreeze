@@ -81,11 +81,16 @@ export class Scoring {
     return s;
   }
 
-  /** 1 star for clearing, 2 for margin >= 8 points or homes >= 1.2x target, 3 for both. */
+  /** Score needed for the margin star: 6 above the line, but never above 98. */
+  marginStarScore(): number {
+    return Math.min(this.threshold + 6, 98);
+  }
+
+  /** 1 star for clearing, 2 for a clear margin or homes >= 1.2x target, 3 for both. */
   stars(): number {
     const s = this.state;
     if (!s.cleared) return 0;
-    const margin = s.satisfaction - this.threshold >= 8;
+    const margin = s.satisfaction >= this.marginStarScore();
     const homes = s.homes >= 1.2 * this.targetHomes;
     return 1 + (margin ? 1 : 0) + (homes ? 1 : 0);
   }

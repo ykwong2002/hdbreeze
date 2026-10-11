@@ -213,6 +213,14 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   };
   const rejectListeners: Array<(reason: string) => void> = [];
   map.on("click", onMapClick);
+  // pulse the build areas while blocks remain, so "highlighted area" is obvious on a busy map
+  let pulseOn = false;
+  const pulse = window.setInterval(() => {
+    if (!map.getLayer(LEVEL_PLOTS_FILL)) return;
+    const remaining = !blocks.allPlaced();
+    pulseOn = remaining && !pulseOn;
+    map.setPaintProperty(LEVEL_PLOTS_FILL, "fill-opacity", remaining ? (pulseOn ? 0.42 : 0.18) : 0.14);
+  }, 950);
 
   return {
     level,
@@ -261,6 +269,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     onSpeech: (cb) => { speechListeners.push(cb); },
     onCleared: (cb) => { clearedListeners.push(cb); },
     dispose() {
+      window.clearInterval(pulse);
       cancelAnimationFrame(raf);
       map.off("click", onMapClick);
       if (map.getLayer(AGENTS_ID)) map.removeLayer(AGENTS_ID);

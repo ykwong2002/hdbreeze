@@ -68,7 +68,7 @@ export function addLevelLayers(map: MlMap, level: BakedLevel): void {
       id: LEVEL_PLOTS_FILL,
       type: "fill",
       source: "level-plots",
-      paint: { "fill-color": "#2a9d9f", "fill-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.38, 0.16] },
+      paint: { "fill-color": "#2a9d9f", "fill-opacity": 0.22, "fill-opacity-transition": { duration: 900 } },
     },
     FIRST_LABEL_LAYER,
   );
@@ -77,7 +77,7 @@ export function addLevelLayers(map: MlMap, level: BakedLevel): void {
       id: "level-plots-line",
       type: "line",
       source: "level-plots",
-      paint: { "line-color": "#1d7f81", "line-width": 2, "line-dasharray": [2, 1.5] },
+      paint: { "line-color": "#1d7f81", "line-width": 2.5, "line-dasharray": [2, 1.2] },
     },
     FIRST_LABEL_LAYER,
   );

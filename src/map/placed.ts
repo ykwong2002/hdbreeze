@@ -15,7 +15,7 @@ export function ensurePlacedLayer(map: MlMap): void {
       type: "fill-extrusion",
       source: SRC,
       paint: {
-        "fill-extrusion-color": ["case", ["==", ["get", "part"], "column"], "#9fb3b0", ["boolean", ["get", "selected"], false], "#bfe3df", "#d9ece9"],
+        "fill-extrusion-color": ["case", ["==", ["get", "part"], "column"], "#7fa39f", ["boolean", ["get", "selected"], false], "#9fd6cf", "#bfe3dc"],
         "fill-extrusion-height": ["get", "h"],
         "fill-extrusion-base": ["get", "base"],
         "fill-extrusion-opacity": 1,

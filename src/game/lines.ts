@@ -56,7 +56,7 @@ export const LINES: Record<Tier, string[]> = {
     "Confirm this block got the best breeze.",
     "Cold until I want to order hot soup.",
     "Is this still Singapore? Wah.",
-    "Lao hero at the corner wearing scarf, can you believe.",
+    "Auntie downstairs wearing jacket, can you believe.",
     "Okay now too shiok already.",
   ],
 };
@@ -64,13 +64,17 @@ export const LINES: Record<Tier, string[]> = {
 export function tierFor(comfort: number): Tier {
   if (comfort < 0.3) return "miserable";
   if (comfort < 0.6) return "warm";
-  if (comfort < 0.85) return "pleasant";
+  if (comfort < 0.97) return "pleasant";
   return "cold";
 }
 
+const recent: string[] = [];
+/** Random line from the tier, avoiding anything said in the last 8 bubbles. */
 export function pickLine(tier: Tier, avoid?: string): string {
-  const pool = LINES[tier];
-  let line = pool[Math.floor(Math.random() * pool.length)]!;
-  if (pool.length > 1 && line === avoid) line = pool[(pool.indexOf(line) + 1) % pool.length]!;
+  const pool = LINES[tier].filter((l) => !recent.includes(l) && l !== avoid);
+  const from = pool.length ? pool : LINES[tier];
+  const line = from[Math.floor(Math.random() * from.length)]!;
+  recent.push(line);
+  if (recent.length > 8) recent.shift();
   return line;
 }
