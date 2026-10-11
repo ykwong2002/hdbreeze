@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+    <title>HDBreeze</title>
+    <meta
+      name="description"
+      content="HDBreeze is a fan-made toy simulation of how HDB block layout shapes street-level wind in Singapore towns. Not affiliated with or endorsed by HDB or URA."
+    />
+    <meta name="theme-color" content="#f4f2ed" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="HDBreeze" />
+    <meta
+      property="og:description"
+      content="A fan-made toy about how HDB block layout shapes street-level wind. Not affiliated with HDB or URA."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div id="map" role="application" aria-label="Map of Singapore"></div>
+
+    <header class="brand">
+      <h1>HDBreeze</h1>
+      <p>Fan-made toy. Not affiliated with HDB or URA.</p>
+    </header>
+
+    <div id="status" class="status" hidden></div>
+
+    <footer class="legal">
+      HDBreeze is a fan-made toy simulation, not real CFD. Not affiliated with or endorsed by HDB or URA.<br />
+      Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+      Contains information from <a href="https://data.gov.sg" target="_blank" rel="noopener">data.gov.sg</a>
+      (Singapore Open Data Licence v1.0).
+    </footer>
+
+    <div id="unsupported" class="unsupported" hidden>
+      <h2>This browser can't run HDBreeze</h2>
+      <p>
+        HDBreeze needs WebGL2, which this browser or in-app view has turned off. Open the link in Chrome,
+        Safari or Firefox and try again.
+      </p>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
