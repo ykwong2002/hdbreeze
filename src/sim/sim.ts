@@ -1,5 +1,6 @@
 import { probeFormat, type Fmt, type GL } from "./gl";
 import { HeatField, Particles, StatsProbe, type Stats } from "./field";
+import { HeatReadback } from "./readback";
 import { LatticeBoltzmann } from "./lbm";
 import { StableFluids } from "./stable";
 import { GROUND_HEAT, ObstacleRaster, type BuildingGeom, type GroundGeom } from "./obstacles";
@@ -30,8 +31,9 @@ export class WindSim {
   readonly heat: HeatField;
   readonly particles: Particles;
   readonly raster: ObstacleRaster;
+  readonly readback: HeatReadback;
   readonly params: WindParams;
-  readonly vis: VisParams = { q: 0.04, kappa: 0.012, kappaWind: 0.1, tMax: 2.4, particleSpeed: 1.0, fade: 0.94 };
+  readonly vis: VisParams = { q: 0.1, kappa: 0.03, kappaWind: 0.1, tMax: 2.4, particleSpeed: 1.0, fade: 0.94 };
   readonly bbox: [number, number, number, number];
   readonly metresPerCell: number;
   private probe: StatsProbe;
@@ -53,12 +55,19 @@ export class WindSim {
     this.raster.kWakeCells = 2.5 / this.metresPerCell;
     const obs = this.raster.texture;
     this.params = opts.solver === "lbm"
-      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 50, jacobi: 20, vorticity: 0, tau: 0.6, substeps: 4 }
-      : { fromDeg: 30, speed: 1, lambda: 0.01, kDrag: 50, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
+      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 12, jacobi: 20, vorticity: 0, tau: 0.6, substeps: 4 }
+      : { fromDeg: 30, speed: 1, lambda: 0.01, kDrag: 12, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
     this.solver = opts.solver === "lbm" ? new LatticeBoltzmann(gl, this.fmt, obs, this.n) : new StableFluids(gl, this.fmt, obs, this.n);
     this.heat = new HeatField(gl, this.fmt, obs, this.n);
     this.particles = new Particles(gl, this.fmt, obs, opts.trailSize ?? 512, this.n);
     this.probe = new StatsProbe(gl);
+    this.readback = new HeatReadback(gl, 64);
+  }
+
+  /** sim cell coordinates -> lon/lat. */
+  toLonLat(cx: number, cy: number): [number, number] {
+    const [w, s, e, n] = this.bbox;
+    return [w + (cx / this.n) * (e - w), s + (cy / this.n) * (n - s)];
   }
 
   /** lon/lat -> sim cell coordinates (x east, y north, 0..n). */
@@ -101,6 +110,8 @@ export class WindSim {
     this.heat.step(this.solver.velocity, scale, W, this.vis.q, this.vis.kappa, this.vis.kappaWind);
     this.particles.step(this.solver.velocity, scale, this.vis.particleSpeed, this.vis.fade);
     this.frames++;
+    this.readback.poll();
+    if (this.frames % 15 === 0) this.readback.request(this.heat.tex, this.raster.texture, this.vis.tMax);
     if (this.frames % 60 === 0) this.lastStats = this.probe.read(this.solver.velocity, this.heat.tex, this.raster.texture, this.solver.cellsPerSubstep, this.vis.tMax);
   }
 }
