@@ -1,7 +1,11 @@
 {
-  // Cloudflare Pages project config. With the Git integration the dashboard
-  // settings win; this file lets `npm run deploy` work from a local build.
+  // Cloudflare Workers "static assets" deploy: the whole dist/ folder is served
+  // as static files, no Worker code. Workers Builds runs `npm run build` then
+  // `npx wrangler deploy` on every push; `npm run deploy` does the same locally.
   "name": "hdbreeze",
   "compatibility_date": "2026-10-01",
-  "pages_build_output_dir": "./dist"
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
 }

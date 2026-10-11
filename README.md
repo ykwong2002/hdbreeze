@@ -41,7 +41,7 @@ Upload it to a bucket that supports HTTP range requests and CORS (Cloudflare R2 
 
 ## Deploy
 
-Static site on Cloudflare Pages: connect the GitHub repo in the Cloudflare dashboard with build command `npm run build` and output directory `dist`, and add `VITE_PMTILES_URL` as a build variable if you host the fallback. `npm run deploy` runs `wrangler pages deploy` for a manual deploy of a local build.
+Static site on Cloudflare Workers (static assets, no Worker code): in the Cloudflare dashboard create a Worker from the GitHub repo with build command `npm run build` and deploy command `npx wrangler deploy`; `wrangler.jsonc` points it at `dist/`. Add `VITE_PMTILES_URL` as a build variable if you host the basemap fallback. `npm run deploy` does the same from a local build.
 
 ## Screenshot check
 
