@@ -1,0 +1,7 @@
+{
+  // Cloudflare Pages project config. With the Git integration the dashboard
+  // settings win; this file lets `npm run deploy` work from a local build.
+  "name": "hdbreeze",
+  "compatibility_date": "2026-10-01",
+  "pages_build_output_dir": "./dist"
+}

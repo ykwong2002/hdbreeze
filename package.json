@@ -1,0 +1,27 @@
+{
+  "name": "hdbreeze",
+  "private": true,
+  "version": "0.0.1",
+  "description": "HDBreeze is a fan-made toy simulation of how HDB block layout shapes street-level wind in Singapore towns. Not affiliated with or endorsed by HDB or URA.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npx wrangler pages deploy",
+    "shoot": "node tools/shoot/shoot.mjs http://localhost:4173/ shots"
+  },
+  "dependencies": {
+    "maplibre-gl": "^6.13.0",
+    "pmtiles": "^4.5.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.43.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4"
+  }
+}
