@@ -5,25 +5,89 @@
   "planningArea": "PUNGGOL",
   "tagline": "HDB modelled the wind here before building. Can you?",
   "brief": "Place all 6 blocks in the highlighted areas. Keep the walkways breezy and house everyone.",
-  "camera": { "zoom": 15.2, "pitch": 55, "bearing": 20 },
+  "camera": {
+    "zoom": 15.2,
+    "pitch": 55,
+    "bearing": 20
+  },
   "wind": {
     "seasons": [
-      { "id": "ne", "label": "NE monsoon (Dec–Mar)", "fromDeg": 30, "speed": 1.0 },
-      { "id": "sw", "label": "SW monsoon (Jun–Sep)", "fromDeg": 160, "speed": 0.8 }
+      {
+        "id": "ne",
+        "label": "NE monsoon (Dec–Mar)",
+        "fromDeg": 30,
+        "speed": 1.0
+      },
+      {
+        "id": "sw",
+        "label": "SW monsoon (Jun–Sep)",
+        "fromDeg": 160,
+        "speed": 0.8
+      }
     ],
-    "required": ["ne"]
+    "required": [
+      "ne"
+    ]
   },
   "areas": [
-    { "id": "a", "label": "Reserve site, north", "at": [103.90393, 1.4095] },
-    { "id": "b", "label": "Reserve site, west", "at": [103.90263, 1.40901] },
-    { "id": "c", "label": "Town centre site", "at": [103.90439, 1.40626] }
+    {
+      "id": "a",
+      "label": "Reserve site, north",
+      "at": [
+        103.90393,
+        1.4095
+      ]
+    },
+    {
+      "id": "b",
+      "label": "Reserve site, west",
+      "at": [
+        103.90263,
+        1.40901
+      ]
+    },
+    {
+      "id": "c",
+      "label": "Town centre site",
+      "at": [
+        103.90439,
+        1.40626
+      ]
+    }
   ],
   "tray": [
-    { "type": "slab", "count": 3 },
-    { "type": "point", "count": 2 },
-    { "type": "courtyard", "count": 1 }
+    {
+      "type": "slab",
+      "count": 3
+    },
+    {
+      "type": "point",
+      "count": 2
+    },
+    {
+      "type": "courtyard",
+      "count": 1
+    }
   ],
-  "heights": { "low": 8, "mid": 16, "high": 30 },
-  "hotspots": [[103.9043, 1.4075]],
-  "targets": { "satisfaction": 72, "holdSeconds": 4 }
+  "heights": {
+    "low": 8,
+    "mid": 16,
+    "high": 30
+  },
+  "hotspots": [
+    [
+      103.9043,
+      1.4075
+    ]
+  ],
+  "targets": {
+    "satisfaction": 94,
+    "holdSeconds": 4
+  },
+  "calibration": {
+    "ne_empty": 95.5,
+    "ne_naive": 92.7,
+    "ne_reference": 97.4,
+    "method": "?calib=1 harness 2026-10-12, spread layouts, 420 settle frames; threshold = reference minus margin"
+  }
 }
