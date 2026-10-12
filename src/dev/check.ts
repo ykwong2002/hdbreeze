@@ -45,6 +45,11 @@ export async function runCheck(s: LevelSession, log: (line: string) => void): Pr
     const careless = await measure();
     log(`  careless ${stats(t1, t2)}`);
     const nAl = fill(s, "aligned");
+    for (const b of s.blocks.blocks) if (b.voidDeck) s.blocks.toggleVoid(b.id);
+    await settle();
+    const rows = await measure();
+    log(`  rows     ${stats(t1, t2)}   (aligned, no void decks: hot30 ${rows.toFixed(2)})`);
+    for (const b of s.blocks.blocks) if (!b.voidDeck && b.type !== "mscp") s.blocks.toggleVoid(b.id);
     await settle();
     const aligned = await measure();
     log(`  aligned  ${stats(t1, t2)}`);
