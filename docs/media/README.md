@@ -1,24 +1,12 @@
-# Recording the walkthrough and screenshots
+# Walkthrough video and screenshots
 
-The headless renderer cannot develop the wind field, so record on a laptop (Chrome or Safari, real GPU).
-Use a phone-shaped window (DevTools device toolbar, iPhone 14 Pro, 390x844) or record the phone itself.
+`tools/shoot/record-walkthrough.mjs` drives a real, visible Chrome window (GPU rendering) through the
+title tour, the town list and the demo autoplay, and records the tab with Puppeteer's screencast:
 
-## Walkthrough video (~60 s)
+    npx vite preview --port 4318 &
+    node tools/shoot/record-walkthrough.mjs http://localhost:4318/ out/
+    ffmpeg -ss 9 -i out/walkthrough.webm -vf "scale=1080:-2,format=yuv420p" -r 30 -c:v libx264 -crf 20 -movflags +faststart out/walkthrough.mp4
 
-1. Title and tour (8 s): open `/`, let the camera glide through the 3D city, tap Start, skip the why cards.
-2. Demo autoplay (~50 s): open `/?demo=1&level=punggol-p1`. It plays five titled sections on its own:
-   1 the real plot, 2 the careless plan at 0 % (walkways red), 3 the planner's layout placed block by block,
-   4 void decks opening, 5 the result (% breathable, people housed), then the cleared card.
-3. Trim the two clips together; keep the careless-to-planned transition uncut, it is the hook.
-
+The browser window must stay visible and the Mac unlocked while it records (about 100 s). The PNGs in
+this folder are frames from that recording; `?demo=1&level=<plot>` plays the five captioned sections.
 Any plot works: `tengah-p1` has a neighbour hot spot, `angmokio-p3` needs both monsoons.
-
-## Screenshots to grab (phone frame)
-
-- the title screen mid-tour (3D blocks behind the card)
-- the careless plan with red walkways and the "This is 0 %" card
-- the planned layout with the blue corridors and the score card above 60 %
-- the cleared card with the lesson line
-- the town overview with one plot starred
-
-The PNGs in this folder are headless drafts for composition only; the wind colours are not representative.
