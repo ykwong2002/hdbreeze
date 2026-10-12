@@ -4,7 +4,7 @@
   "subzone": "PUNGGOL TOWN CENTRE",
   "planningArea": "PUNGGOL",
   "tagline": "HDB modelled the wind here before building. Can you?",
-  "brief": "Two walkways sit in the wind shadow of the town centre. Angle your 4 blocks so the breeze curls into them.",
+  "brief": "Two walkways by the town centre never feel the breeze. Angle your 3 slabs so it curls into them.",
   "camera": {
     "center": [
       103.9036,
@@ -65,31 +65,27 @@
   "hotspots": [
     {
       "id": "bus",
-      "label": "Bus stop",
+      "label": "Bus interchange",
       "at": [
-        103.90439,
-        1.40837
+        103.902689,
+        1.404972
       ],
-      "targetC": 30
+      "targetC": 33.0
     },
     {
-      "id": "play",
-      "label": "Playground",
+      "id": "mall",
+      "label": "Mall entrance",
       "at": [
-        103.90254,
-        1.40582
+        103.904859,
+        1.407761
       ],
-      "targetC": 30
+      "targetC": 32.0
     }
   ],
   "tray": [
     {
       "type": "slab",
       "count": 3
-    },
-    {
-      "type": "point",
-      "count": 1
     }
   ],
   "heights": {
@@ -104,40 +100,30 @@
     {
       "type": "slab",
       "at": [
-        103.904707,
-        1.408291
+        103.90309,
+        1.404948
       ],
-      "rotDeg": 172,
+      "rotDeg": 150,
       "height": "mid",
       "voidDeck": false
     },
     {
       "type": "slab",
       "at": [
-        103.904163,
-        1.408605
+        103.90508,
+        1.407426
       ],
-      "rotDeg": 128,
+      "rotDeg": 125,
       "height": "mid",
       "voidDeck": false
     },
     {
       "type": "slab",
       "at": [
-        103.902857,
-        1.405741
+        103.903,
+        1.409
       ],
-      "rotDeg": 172,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "point",
-      "at": [
-        103.902351,
-        1.406033
-      ],
-      "rotDeg": 0,
+      "rotDeg": 150,
       "height": "mid",
       "voidDeck": false
     }

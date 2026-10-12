@@ -4,7 +4,7 @@
   "subzone": "PLANTATION",
   "planningArea": "TENGAH",
   "tagline": "Singapore's newest town, planned around wind from day one.",
-  "brief": "The last empty plot in Plantation. Two spots north of it never feel the breeze; steer it to them with 4 blocks.",
+  "brief": "The last empty plot in Plantation. Two spots beside it never feel the breeze; steer it to them with 3 slabs.",
   "camera": {
     "center": [
       103.7327,
@@ -51,29 +51,25 @@
       "id": "bus",
       "label": "Bus stop",
       "at": [
-        103.73274,
-        1.35398
+        103.731175,
+        1.351365
       ],
-      "targetC": 30
+      "targetC": 33.5
     },
     {
       "id": "play",
       "label": "Playground",
       "at": [
-        103.73274,
-        1.35361
+        103.732738,
+        1.353979
       ],
-      "targetC": 30
+      "targetC": 32.0
     }
   ],
   "tray": [
     {
       "type": "slab",
       "count": 3
-    },
-    {
-      "type": "point",
-      "count": 1
     }
   ],
   "heights": {
@@ -88,40 +84,30 @@
     {
       "type": "slab",
       "at": [
-        103.733057,
-        1.353901
+        103.730965,
+        1.351624
       ],
-      "rotDeg": 172,
+      "rotDeg": 150,
       "height": "mid",
       "voidDeck": false
     },
     {
       "type": "slab",
       "at": [
-        103.732513,
-        1.354215
+        103.731486,
+        1.351185
       ],
-      "rotDeg": 128,
+      "rotDeg": 150,
       "height": "mid",
       "voidDeck": false
     },
     {
       "type": "slab",
       "at": [
-        103.733045,
-        1.35333
+        103.732337,
+        1.354003
       ],
-      "rotDeg": 172,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "point",
-      "at": [
-        103.732345,
-        1.353734
-      ],
-      "rotDeg": 0,
+      "rotDeg": 150,
       "height": "mid",
       "voidDeck": false
     }
