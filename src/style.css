@@ -522,7 +522,7 @@ body.in-intro .leveltip { visibility: hidden; }
 .mapnote-touch, .mapnote-mouse { display: none; }
 body.touch .mapnote-touch, body.mouse .mapnote-mouse { display: inline; }
 body.in-level .mapnote, body.in-intro .mapnote { display: none; }
-@media (max-width: 480px) { .mapnote { top: calc(58px + var(--safe-top)); left: 12px; right: 12px; transform: none; max-width: none; white-space: normal; text-align: center; } }
+@media (max-width: 480px) { .mapnote { top: calc(62px + var(--safe-top)); left: 12px; right: 70px; transform: none; max-width: none; white-space: normal; text-align: left; font-size: 11px; } }
 .endcard-lesson .ico { color: #e8b84a; }
 .score-row .ico { color: var(--ink-soft); }
 .score-row.ok .ico { color: var(--cool); }
