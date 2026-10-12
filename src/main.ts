@@ -79,7 +79,7 @@ async function boot(): Promise<void> {
   document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   if (!coarse) document.querySelector(".brand-touch")?.setAttribute("hidden", "");
-  const checking = params.has("check");
+  const checking = params.has("check") || params.has("export");
   const demo = params.has("demo");
   const quiet = checking || isHarness() || demo;
   if (demo) document.body.classList.add("in-demo");
@@ -212,7 +212,16 @@ async function boot(): Promise<void> {
     s.onSpeech((sp) => bubbles?.say(sp.lonLat(), sp.text, sp.tier, sp.lonLat));
 
     // intro: Master Plan facts + on-device baselines (careless plan shown), then build
-    if (checking) {
+    if (params.has("export")) {
+      const { runExport } = await import("./dev/export");
+      const box = document.createElement("pre");
+      box.className = "calib";
+      box.textContent = "exporting fields…\n";
+      ui.append(box);
+      await s.overlay.ready;
+      await new Promise((r) => setTimeout(r, 2000));
+      void runExport(s, hdb.map, (line) => { box.textContent += line + "\n"; console.log("[export]", line); });
+    } else if (checking) {
       const { runCheck } = await import("./dev/check");
       const box = document.createElement("pre");
       box.className = "calib";
