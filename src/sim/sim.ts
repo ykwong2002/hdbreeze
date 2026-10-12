@@ -64,9 +64,16 @@ export class WindSim {
     this.raster = new ObstacleRaster(gl, this.n);
     this.raster.kWakeCells = 2.5 / this.metresPerCell;
     const obs = this.raster.texture;
+    // Per-step rates were tuned at 4.8 m cells (town-sized boxes). Plot-sized boxes run at ~1.7 m cells,
+    // so the same per-step rate would act three times faster per metre: air would forget an upstream
+    // block within 60 m instead of 160 m and layouts would barely move the score. Scale them with cell size.
+    const k = this.metresPerCell / 4.8;
     this.params = opts.solver === "lbm"
-      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 0.07, jacobi: 20, vorticity: 0, tau: 0.66, substeps: 4 }
-      : { fromDeg: 30, speed: 1, lambda: 0.01, kDrag: 0.5, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
+      ? { fromDeg: 30, speed: 1, lambda: 0.006 * k, kDrag: 0.07 * k, jacobi: 20, vorticity: 0, tau: 0.66, substeps: 4 }
+      : { fromDeg: 30, speed: 1, lambda: 0.01 * k, kDrag: 0.5 * k, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
+    this.vis.q *= k;
+    this.vis.kappa *= k;
+    this.vis.kappaWind *= k;
     this.solver = opts.solver === "lbm" ? new LatticeBoltzmann(gl, this.fmt, obs, this.n) : new StableFluids(gl, this.fmt, obs, this.n);
     this.heat = new HeatField(gl, this.fmt, obs, this.n);
     this.particles = new Particles(gl, this.fmt, obs, opts.trailSize ?? 512, this.n);
