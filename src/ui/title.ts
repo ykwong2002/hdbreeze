@@ -1,3 +1,5 @@
+import { ICON } from "./icons";
+
 /** Title screen: name, pitch, non-affiliation line, Start, Why this game, How to play. */
 export function showTitle(root: HTMLElement, onStart: () => void, onWhy: () => void): { unmount(): void } {
   const el = document.createElement("section");
@@ -18,9 +20,9 @@ export function showTitle(root: HTMLElement, onStart: () => void, onWhy: () => v
 }
 
 const WHY = [
-  { ico: "🌡️", h: "Singapore is hot, and getting hotter", p: "Dense towns trap heat. The cheapest cooling we have is the breeze: a light wind of about 1 m/s makes the air feel a degree or two cooler. Where blocks stand in its way, the streets between them turn stuffy." },
-  { ico: "🏙️", h: "Planners think about the wind before they build", p: "Every parcel has a plot ratio: how much floor area has to fit on it. Planners study wind, sun and noise before a precinct is laid out, so the blocks house everyone and still let the air through. Everything in this game is an estimate of that, for fun and education." },
-  { ico: "🎮", h: "Your job", p: "Take a real empty plot, place the whole tray of blocks the plot ratio calls for, and keep the walkways breathable. Rows along the wind, gaps between them, void decks and stepped heights all help. Pass it in both monsoons where the plot asks for it." },
+  { ico: ICON.sun, h: "Singapore is hot", p: "<strong>A light breeze feels one to two degrees cooler.</strong> Where blocks stand in its way, the streets between them turn <em>stuffy</em>." },
+  { ico: ICON.city, h: "Planners think about wind first", p: "<strong>Every plot must house a set number of people.</strong> The craft is fitting them in and <em>still letting the air through</em>." },
+  { ico: ICON.wind, h: "Your job", p: "<strong>Place every block. House everyone. Keep the walkways breathable.</strong> Rows along the wind, gaps between them, void decks. <em>Estimates, for fun and education.</em>" },
 ];
 
 /** Three "why this game" panels, shown on first start and from the title. */
@@ -54,10 +56,11 @@ export function showHowTo(root: HTMLElement): { unmount(): void } {
     <div class="howto-box">
       <h2>How to play</h2>
       <ol>
-        <li><span class="howto-ico">🎯</span><span><strong>Clear a plot:</strong> place every block in the tray, house the target, and keep the precinct breathable (the big number) above the line for a few seconds.</span></li>
-        <li><span class="howto-ico">👆</span><span><strong>Drag</strong> a block from the tray onto the plot. <strong>Twist two fingers</strong> to turn it. <strong>Tap</strong> it for height (more homes, longer wind shadow), void deck and remove.</span></li>
-        <li><span class="howto-ico">🌬️</span><span><strong>The arrow is the wind.</strong> Rows along it and gaps between them are corridors; walls across it make stuffy pockets. Blue is breezy, red is stuffy.</span></li>
-        <li><span class="howto-ico">🌦️</span><span><strong>Two monsoons.</strong> NE (Dec–Mar) and SW (Jun–Sep) blow from opposite sides. Tap the monsoon chip to switch; some plots must pass both.</span></li>
+        <li><span class="howto-ico">${ICON.target}</span><span><strong>Clear a plot:</strong> place every block in the tray, house the target, and keep the precinct breathable (the big number) above the line for a few seconds.</span></li>
+        <li><span class="howto-ico">${ICON.hand}</span><span><strong>Drag</strong> a block from the tray onto the plot, drag it again to move. <strong>Twist two fingers</strong> to turn it. <strong>Tap</strong> it for height, void deck and remove.</span></li>
+        <li><span class="howto-ico">${ICON.fingers2}</span><span><strong>Two fingers</strong> drag the map and pinch to zoom. <strong>Three-finger tap</strong> tilts the view.</span></li>
+        <li><span class="howto-ico">${ICON.wind}</span><span><strong>The arrow is the wind.</strong> Rows along it and gaps between them are corridors; walls across it make stuffy pockets. Blue is breezy, red is stuffy.</span></li>
+        <li><span class="howto-ico">${ICON.cloud}</span><span><strong>Two monsoons.</strong> NE (Dec–Mar) and SW (Jun–Sep) blow from opposite sides. Tap the monsoon chip to switch; some plots must pass both.</span></li>
       </ol>
       <p class="howto-tip">Breathability is measured on your device: 0% is the careless plan you saw at the start, 100% is the empty plot.</p>
       <div class="endcard-btns"><button class="btn btn-primary howto-ok">Got it</button><button class="btn btn-link howto-about">about & sources</button></div>

@@ -14,6 +14,8 @@ const SETTLE_FRAMES = Number(new URLSearchParams(location.search).get("settle") 
 
 export interface IntroHooks {
   status(text: string, phase: "empty" | "careless" | "done"): void;
+  /** Shows a button with `label` and resolves when the player presses it. */
+  wait(label: string): Promise<void>;
 }
 
 export function cachedBaselines(levelId: string): Record<string, Baseline> {
@@ -55,11 +57,12 @@ export async function runIntro(s: LevelSession, hooks: IntroHooks, force = false
       await settle(SETTLE_FRAMES + 80);
       const empty = await measure();
       fill(s, "careless");
-      hooks.status(`A careless plan: walls across the ${label} wind, every block high. Watch the streets heat up.`, "careless");
+      hooks.status(`<strong>A careless plan.</strong> Walls across the ${label} wind, every block tall. Watch the walkways turn red.`, "careless");
       await settle();
       const careless = await measure();
-      hooks.status(`This is 0% breathable: the walkways read ${careless.toFixed(1)} °C against ${empty.toFixed(1)} °C on the empty plot (model values).`, "careless");
-      await sleep(2500);
+      hooks.status(`<strong>This is 0% breathable.</strong> Walls across the ${label} wind, every block tall. Look at the red before you build.`, "careless");
+      const more = todo.indexOf(sid) < todo.length - 1;
+      await hooks.wait(more ? `Next: the ${s.level.wind.seasons.find((x) => x.id === todo[todo.indexOf(sid) + 1])?.label.split(" (")[0] ?? "other"} monsoon` : "My turn");
       s.blocks.clearAll();
       const b = { empty: Math.round(empty * 100) / 100, careless: Math.round(careless * 100) / 100 };
       s.scoring.setBaseline(sid, b);

@@ -1,4 +1,5 @@
 import type { ScoreState } from "../game/scoring";
+import { ICON } from "./icons";
 
 export interface EndCardOptions {
   townName: string;
@@ -37,7 +38,7 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
       <h2>${title}</h2>
       <p class="endcard-sub">${o.plotLabel}</p>
       ${summary}
-      <p class="endcard-lesson">💡 ${o.lesson}</p>
+      <p class="endcard-lesson">${ICON.bulb} ${o.lesson}</p>
       <p class="endcard-stars-h">Stars</p>
       <ul class="endcard-stars-why">
         <li>★ Cleared the plot</li>
@@ -55,8 +56,8 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
     </div>`;
   root.append(el);
   const text = last
-    ? `I planned ${o.townName} in HDBreeze 🌬️ ${o.townSummary!.homes.toLocaleString()} people housed, ${o.townSummary!.avgPct}% breathable, ${o.townSummary!.stars}★. Can you plan a cooler town? Can or not? ${location.origin}${location.pathname}`
-    : `I cleared ${o.plotLabel} (${o.townName}) in HDBreeze 🌬️ ${stars} ${o.minPct}% breathable, ${o.state.homes.toLocaleString()} people housed. Can or not? ${location.origin}${location.pathname}`;
+    ? `I planned ${o.townName} in HDBreeze: ${o.townSummary!.homes.toLocaleString()} people housed, ${o.townSummary!.avgPct}% breathable, ${o.townSummary!.stars}★. Can you plan a cooler town? Can or not? ${location.origin}${location.pathname}`
+    : `I cleared ${o.plotLabel} (${o.townName}) in HDBreeze ${stars} ${o.minPct}% breathable, ${o.state.homes.toLocaleString()} people housed. Can or not? ${location.origin}${location.pathname}`;
   const note = el.querySelector<HTMLElement>(".share-note")!;
   el.querySelector<HTMLButtonElement>(".share-text")!.onclick = async () => {
     const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };

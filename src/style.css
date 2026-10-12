@@ -488,3 +488,30 @@ body.in-intro .tray, body.in-intro .hud, body.in-intro .comment, body.in-intro .
 body.in-intro #map { pointer-events: none; }
 .pc-note { margin: 8px 0 0; font-size: 11px; color: var(--ink-soft); text-align: center; }
 .endcard-stars-h { margin: 0 0 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); text-align: left; }
+
+/* v7b: icons, compact plot card, level tip */
+.ico { display: inline-block; vertical-align: -0.18em; width: 1.1em; height: 1.1em; flex: 0 0 auto; }
+.pc-goals { margin: 0 0 8px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+.pc-goals li { display: flex; align-items: center; gap: 8px; }
+.pc-goals .ico { color: var(--cool); font-size: 18px; }
+.pc-bonus { color: var(--ink-soft); font-size: 13px; }
+.pc-bonus .ico { color: #e8b84a; }
+.plotcard-box { padding: 12px 16px 12px; }
+.plotcard.careless .plotcard-box .pc-goals { display: none; }
+.howto-ico .ico, .why-ico .ico { width: 1em; height: 1em; }
+.why-ico { color: var(--cool); }
+.howto-ico { color: var(--cool); font-size: 26px; }
+.hud .chip .ico { width: 18px; height: 18px; vertical-align: -4px; }
+.comment-who .ico { width: 22px; height: 22px; }
+.comment[data-tier="miserable"] .comment-who { color: var(--hot); }
+.comment[data-tier="pleasant"] .comment-who, .comment[data-tier="cold"] .comment-who { color: var(--cool); }
+.hs-label .ico { width: 14px; height: 14px; margin-right: 2px; }
+.leveltip { position: fixed; right: calc(10px + var(--safe-right)); top: calc(226px + var(--safe-top)); z-index: 4; display: flex; flex-direction: column; gap: 3px; max-width: 140px; padding: 7px 9px; font-size: 11px; line-height: 1.25; color: var(--ink); background: rgba(255, 255, 255, 0.86); border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); pointer-events: none; }
+.leveltip span { display: flex; align-items: center; gap: 5px; }
+.leveltip .ico { color: var(--cool); width: 15px; height: 15px; }
+body.in-intro .leveltip { visibility: hidden; }
+.brand-touch { font-size: 11px; }
+.endcard-lesson .ico { color: #e8b84a; }
+.score-row .ico { color: var(--ink-soft); }
+.score-row.ok .ico { color: var(--cool); }
+.tv-stars .ico { width: 16px; height: 16px; color: var(--ink-soft); }

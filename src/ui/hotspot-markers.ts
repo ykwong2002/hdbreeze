@@ -1,8 +1,8 @@
 import type { Map as MlMap } from "maplibre-gl";
 import type { HotSpot } from "../game/hotspots";
+import { ICON } from "./icons";
 
-const ICONS: [RegExp, string][] = [[/bus/i, "🚏"], [/play/i, "🛝"], [/hawker|coffee|kopi|food/i, "🍜"], [/market/i, "🧺"], [/void|deck/i, "🏢"], [/park|garden/i, "🌳"], [/school/i, "🏫"], [/mrt|station/i, "🚇"]];
-const iconFor = (label: string): string => ICONS.find(([re]) => re.test(label))?.[1] ?? "📍";
+const iconFor = (_label: string): string => ICON.pin;
 
 /** Red pulsing markers on the hot spots with their live felt temperature; teal once cooled. */
 export function mountHotSpotMarkers(root: HTMLElement, map: MlMap, toLonLat: (x: number, y: number) => [number, number]): { set(spots: HotSpot[]): void; unmount(): void } {

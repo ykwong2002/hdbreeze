@@ -1,5 +1,6 @@
 import type { Map as MlMap } from "maplibre-gl";
 import type { Tier } from "../game/lines";
+import { ICON } from "./icons";
 
 /**
  * Resident comments in a fixed strip under the score card, out of the play area,
@@ -43,11 +44,11 @@ export function mountBubbles(root: HTMLElement, map: MlMap): Bubbles {
     raf = requestAnimationFrame(tick);
   };
   let raf = requestAnimationFrame(tick);
-  const label: Record<Tier, string> = { miserable: "😓", warm: "😐", pleasant: "😊", cold: "🥶" };
+  const label: Record<Tier, string> = { miserable: ICON.faceSad, warm: ICON.faceNeutral, pleasant: ICON.faceHappy, cold: ICON.faceCool };
   return {
     say(_ll, text, tier, f) {
       place();
-      who.textContent = label[tier];
+      who.innerHTML = label[tier];
       textEl.textContent = text;
       strip.dataset.tier = tier;
       strip.hidden = false;
