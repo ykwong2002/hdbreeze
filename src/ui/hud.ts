@@ -37,13 +37,14 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
   mute.innerHTML = sound.enabled ? ICON.sound : ICON.mute;
   mute.onclick = () => { mute.innerHTML = sound.toggle() ? ICON.sound : ICON.mute; };
   const recenter = document.createElement("button");
-  recenter.className = "chip";
+  recenter.className = "chip chip-recenter";
   recenter.setAttribute("aria-label", "Back to the plot");
   recenter.innerHTML = ICON.target;
   recenter.onclick = onRecenter;
   const dev = document.createElement("span");
   dev.className = "devstats";
-  bar.append(back, seasonBtn, residents, help, mute, recenter, dev);
+  bar.append(back, seasonBtn, residents, help, mute, dev);
+  root.append(recenter);
   root.append(bar);
 
   const update = (): void => {
@@ -68,6 +69,7 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
     unmount: () => {
       window.clearInterval(timer);
       bar.remove();
+      recenter.remove();
     },
   };
 }
