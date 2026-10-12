@@ -4,7 +4,7 @@
   "subzone": "CHENG SAN",
   "planningArea": "ANG MO KIO",
   "tagline": "A mature town. Make it work in both monsoons.",
-  "brief": "Two spots in Cheng San miss both monsoons. Steer the breeze into them with 4 blocks, in both seasons.",
+  "brief": "Two spots in Cheng San miss both monsoons. Steer the breeze into them with 3 slabs, in both seasons.",
   "camera": {
     "center": [
       103.8492,
@@ -60,29 +60,25 @@
       "id": "hawker",
       "label": "Hawker centre",
       "at": [
-        103.84848,
-        1.37543
+        103.84854,
+        1.375605
       ],
-      "targetC": 30
+      "targetC": 33.5
     },
     {
-      "id": "bus",
-      "label": "Bus stop",
+      "id": "play",
+      "label": "Playground",
       "at": [
-        103.84908,
-        1.37468
+        103.8502,
+        1.37334
       ],
-      "targetC": 30
+      "targetC": 33.0
     }
   ],
   "tray": [
     {
       "type": "slab",
       "count": 3
-    },
-    {
-      "type": "point",
-      "count": 1
     }
   ],
   "heights": {
@@ -97,40 +93,30 @@
     {
       "type": "slab",
       "at": [
-        103.848797,
-        1.375351
+        103.848141,
+        1.375651
       ],
-      "rotDeg": 172,
+      "rotDeg": 20,
       "height": "mid",
       "voidDeck": false
     },
     {
       "type": "slab",
       "at": [
-        103.848253,
-        1.375665
+        103.8499,
+        1.3731
       ],
-      "rotDeg": 128,
+      "rotDeg": 60,
       "height": "mid",
       "voidDeck": false
     },
     {
       "type": "slab",
       "at": [
-        103.849397,
-        1.374601
+        103.8505,
+        1.373
       ],
-      "rotDeg": 172,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "point",
-      "at": [
-        103.848853,
-        1.374915
-      ],
-      "rotDeg": 0,
+      "rotDeg": 60,
       "height": "mid",
       "voidDeck": false
     }
