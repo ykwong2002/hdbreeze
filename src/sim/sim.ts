@@ -35,7 +35,7 @@ export class WindSim {
   readonly raster: ObstacleRaster;
   readonly readback: HeatReadback;
   readonly params: WindParams;
-  readonly vis: VisParams = { q: 0.3, kappa: 0.03, kappaWind: 0.2, vCap: 1.0, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
+  readonly vis: VisParams = { q: 0.14, kappa: 0.03, kappaWind: 0.2, vCap: 1.6, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
   readonly bbox: [number, number, number, number];
   readonly metresPerCell: number;
   private probe: StatsProbe;

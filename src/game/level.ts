@@ -15,6 +15,7 @@ import type { ResidentBrain } from "../lm/resident";
 import { Blocks, type PlaceResult } from "./blocks";
 import type { TypologyId } from "./typologies";
 import { comfortFromFeels, feelsLikeC, Scoring, type ScoreState } from "./scoring";
+import { findHotSpots, scoreHotSpots, type HotSpot } from "./hotspots";
 
 export interface Speech {
   agent: Agent;
@@ -26,6 +27,9 @@ export interface Speech {
 export interface LevelSession {
   level: BakedLevel;
   overlay: WindOverlay;
+  /** Wind-starved pockets found in the empty state for the current season. */
+  hotSpots: HotSpot[];
+  onHotSpots(cb: (spots: HotSpot[]) => void): void;
   /** Optional tiny language model for fresh resident lines. */
   brain: ResidentBrain | null;
   blocks: Blocks;
@@ -120,6 +124,10 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let last = performance.now();
   let samplePts: [number, number][] | null = null;
   let samplePtsDirty = true;
+  let hotSpots: HotSpot[] = [];
+  let hotSpotsFor = ""; // season id the spots were found for
+  let settleFrom = 0; // sim frame after which the empty-state field counts as settled
+  const hotSpotListeners: Array<(spots: HotSpot[]) => void> = [];
   let nextSpeech = performance.now() + 4000;
   let lastLine = "";
   let clearedFired = false;
@@ -137,11 +145,17 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
         const dt = Math.min(0.1, (now - last) / 1000);
         last = now;
         ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
-        // score from fixed walkway sample points (deterministic); residents are the visible crowd
+        // hot spots: found from the empty-state field once the flow has settled, per season
+        if (sim.readback.ready && hotSpotsFor !== season.id && sim.frameCount >= settleFrom + 240 && blocks.blocks.length === 0) {
+          hotSpots = findHotSpots(ag, sim.readback, sim.n, sim.vis.tMax, sim.metresPerCell);
+          hotSpotsFor = season.id;
+          for (const cb of hotSpotListeners) cb(hotSpots);
+        }
+        // score: 70% the hot spots, 30% every walkway near the areas (so new pockets still cost)
         let meanComfort: number | null = null, meanFeels: number | null = null;
         if (sim.readback.ready) {
           if (!samplePts || samplePtsDirty) {
-            samplePts = ag.samplePoints([]); // all walkways near the areas, plus void-deck hangouts
+            samplePts = ag.samplePoints([]);
             samplePtsDirty = false;
           }
           let c = 0, f = 0, n = 0;
@@ -151,7 +165,10 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
             const feels = feelsLikeC(T, sim.vis.tMax);
             c += comfortFromFeels(feels); f += feels; n++;
           }
-          if (n) { meanComfort = c / n; meanFeels = f / n; }
+          const walk = n ? { comfort: c / n, feels: f / n } : { comfort: null, feels: null };
+          const spots = hotSpots.length ? scoreHotSpots(hotSpots, sim.readback, sim.n, sim.vis.tMax) : { comfort: null, feels: null };
+          if (spots.comfort !== null && walk.comfort !== null) { meanComfort = 0.7 * spots.comfort + 0.3 * walk.comfort; meanFeels = 0.7 * spots.feels! + 0.3 * walk.feels!; }
+          else { meanComfort = spots.comfort ?? walk.comfort; meanFeels = spots.feels ?? walk.feels; }
         }
         const state = scoring.update(dt, meanComfort, meanFeels, blocks.homes(), blocks.blocks.length, blocks.total());
         for (const cb of scoreListeners) cb(state);
@@ -181,7 +198,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let season = level.wind.seasons.find((x) => x.id === level.wind.required[0]) ?? level.wind.seasons[0]!;
   const applySeason = (): void => {
     scoring.season = season.id;
-    overlay.ready.then((sim) => sim.setWind(season.fromDeg, season.speed)).catch(() => {});
+    overlay.ready.then((sim) => { sim.setWind(season.fromDeg, season.speed); settleFrom = sim.frameCount; }).catch(() => {});
   };
   applySeason();
   scoring.onSeasonHeld = (held) => {
@@ -240,6 +257,10 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   return {
     level,
     overlay,
+    get hotSpots() {
+      return hotSpots;
+    },
+    onHotSpots: (cb) => { hotSpotListeners.push(cb); },
     get brain() {
       return self2.brain;
     },

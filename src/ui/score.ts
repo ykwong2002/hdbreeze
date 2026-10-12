@@ -1,13 +1,13 @@
 import type { ScoreState } from "../game/scoring";
 
 /** Score card: one big number, a bar with the threshold marked, homes vs target, feels-like. */
-export function mountScore(root: HTMLElement, threshold: number, targetHomes: number): { update(s: ScoreState): void; unmount(): void } {
+export function mountScore(root: HTMLElement, threshold: number, targetHomes: number): { update(s: ScoreState): void; setSpots(cooled: number, total: number): void; unmount(): void } {
   const card = document.createElement("section");
   card.className = "score";
   card.innerHTML = `
     <div class="score-top"><span class="score-num">–</span><span class="score-label">satisfaction<br><small class="feels"></small></span></div>
     <div class="score-bar"><div class="score-fill"></div><div class="score-tick" style="left:${threshold}%"></div><div class="score-hold"></div></div>
-    <div class="score-foot"><span class="score-homes"></span><span class="score-blocks"></span><span class="score-hint">Goal: place every block, house ${targetHomes.toLocaleString()} people, keep the score above ${threshold}.</span></div>
+    <div class="score-foot"><span class="score-spots">🔥 finding hot spots…</span><span class="score-homes"></span><span class="score-blocks"></span><span class="score-hint">Goal: steer the breeze into the hot spots, place every block, house ${targetHomes.toLocaleString()}, and keep the score above ${threshold}.</span></div>
     <div class="legend"><span>breezy</span><span class="legend-bar"></span><span>stuffy</span></div>`;
   root.append(card);
   const num = card.querySelector<HTMLElement>(".score-num")!;
@@ -15,6 +15,7 @@ export function mountScore(root: HTMLElement, threshold: number, targetHomes: nu
   const hold = card.querySelector<HTMLElement>(".score-hold")!;
   const homes = card.querySelector<HTMLElement>(".score-homes")!;
   const blocksEl = card.querySelector<HTMLElement>(".score-blocks")!;
+  const spotsEl = card.querySelector<HTMLElement>(".score-spots")!;
   const feels = card.querySelector<HTMLElement>(".feels")!;
   return {
     update(s) {
@@ -27,6 +28,10 @@ export function mountScore(root: HTMLElement, threshold: number, targetHomes: nu
       blocksEl.textContent = `🧱 ${s.placed} / ${s.toPlace} blocks`;
       blocksEl.classList.toggle("ok", s.allPlaced);
       feels.textContent = `feels like ${s.meanFeelsLike.toFixed(1)} °C`;
+    },
+    setSpots(cooled, total) {
+      spotsEl.textContent = total ? `🔥 hot spots cooled ${cooled} / ${total}` : "🔥 no wind-starved pockets here";
+      spotsEl.classList.toggle("ok", total > 0 && cooled === total);
     },
     unmount: () => card.remove(),
   };

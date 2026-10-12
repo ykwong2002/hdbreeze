@@ -85,6 +85,6 @@
     "holdSeconds": 4
   },
   "calibration": {
-    "method": "provisional after wind-chill cap 2026-10-12: exposed breezy walkway ~31.5 C (comfort 0.4), shaded ~28 C; threshold set between all-exposed and half-shaded; recalibrate with ?calib=1 on a real GPU"
+    "method": "provisional for the hot-spot goal 2026-10-12; calibrate on a real GPU with ?dev=1&calib=1"
   }
 }

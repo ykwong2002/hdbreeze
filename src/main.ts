@@ -16,6 +16,7 @@ import { showEndCard } from "./ui/endcard";
 import { showHowTo, showTitle } from "./ui/title";
 import { mountOnboarding } from "./ui/onboarding";
 import { showResidents } from "./ui/residents";
+import { mountHotSpotMarkers } from "./ui/hotspot-markers";
 import { tierFor } from "./game/lines";
 
 function showUnsupported(): void {
@@ -85,6 +86,7 @@ async function boot(): Promise<void> {
   let bubbles: Bubbles | null = null;
   let endcard: { unmount(): void } | null = null;
   let onboarding: { unmount(): void } | null = null;
+  let markers: ReturnType<typeof mountHotSpotMarkers> | null = null;
   let brainMod: typeof import("./lm/resident") | null = null;
 
   const leave = (): void => {
@@ -94,6 +96,8 @@ async function boot(): Promise<void> {
     endcard = null;
     onboarding?.unmount();
     onboarding = null;
+    markers?.unmount();
+    markers = null;
     bubbles?.unmount();
     bubbles = null;
     score?.unmount();
@@ -161,7 +165,12 @@ async function boot(): Promise<void> {
     }
     document.body.classList.add("in-level");
     score = mountScore(ui, s.level.targets.satisfaction, s.level.targets.homes);
-    s.onScore((st) => score?.update(st));
+    s.onScore((st) => { score?.update(st); score?.setSpots(s.hotSpots.filter((h) => h.cooled).length, s.hotSpots.length); });
+    void s.overlay.ready.then((sim) => {
+      markers = mountHotSpotMarkers(ui, hdb.map, (x, y) => sim.toLonLat(x, y));
+      s.onHotSpots((spots) => markers?.set(spots));
+      if (s.hotSpots.length) markers.set(s.hotSpots);
+    });
     bubbles = mountBubbles(ui, hdb.map);
     s.onSpeech((sp) => bubbles?.say(sp.lonLat(), sp.text, sp.tier, sp.lonLat));
     s.onCleared(() => {
