@@ -120,7 +120,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let last = performance.now();
   let samplePts: [number, number][] | null = null;
   let samplePtsDirty = true;
-  let nextSpeech = performance.now() + 2500;
+  let nextSpeech = performance.now() + 4000;
   let lastLine = "";
   let clearedFired = false;
   overlay.ready
@@ -160,7 +160,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
           for (const cb of clearedListeners) cb();
         }
         if (now >= nextSpeech && ag.agents.length && sim.readback.ready) {
-          nextSpeech = now + 1400 + Math.random() * 1200;
+          nextSpeech = now + 6500 + Math.random() * 3000; // one comment every 6-10 s, held in the strip
           const a = ag.agents[Math.floor(Math.random() * ag.agents.length)]!;
           const tier = tierFor(a.comfort);
           const emit = (text: string): void => {

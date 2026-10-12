@@ -106,7 +106,7 @@ async function boot(): Promise<void> {
       showResidents(ui, sess.brain, () => tierFor(comfort()), () => sess.scoring.state.meanFeelsLike);
     });
     // the residents' language model loads after the level is up; 1.5 MB, worker thread
-    void session.overlay.ready.then(async () => {
+    if (!new URLSearchParams(location.search).has("nolm")) void session.overlay.ready.then(async () => {
       brainMod ??= await import("./lm/resident");
       const sess = session;
       if (!sess) return;
