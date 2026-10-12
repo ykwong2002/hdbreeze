@@ -3,7 +3,7 @@ import { drawQuad, FBO, GLSL_BOUNDARY, GLSL_HEADER, PingPong, Program, QUAD_VS, 
 /** Heat scalar advected by whichever solver is active, with ground source and decay (plan 3.3 step 7). */
 const HEAT_FS = `${GLSL_HEADER}${GLSL_BOUNDARY}
 uniform sampler2D uVel, uHeat, uObs;
-uniform ivec2 uN; uniform vec2 uW; uniform float uScale, uQ, uKappa, uKappaWind;
+uniform ivec2 uN; uniform vec2 uW; uniform float uScale, uQ, uKappa, uKappaWind, uVCap;
 out vec4 o;
 void main() {
   ivec2 c = ivec2(gl_FragCoord.xy);
@@ -20,7 +20,8 @@ void main() {
   // moving air carries it off (wind chill)
   // sun-baked ground is the heat source; the shade apron of a building removes most of it
   float source = ob.b * (1.0 - 0.8 * ob.g);
-  float kappa = uKappa + uKappaWind * length(v);
+  // a breeze takes the edge off the sun but cannot erase it: cap the wind-chill benefit
+  float kappa = uKappa + uKappaWind * min(length(v), uVCap);
   T += uQ * source * (1.0 - sigma) - kappa * T;
   o = vec4(max(T, 0.0), 0.0, 0.0, 0.0);
 }`;
@@ -47,11 +48,11 @@ export class HeatField {
     this.heat.clear();
   }
   /** One frame: `scale` converts solver velocity to cells per frame. */
-  step(vel: WebGLTexture, scale: number, W: [number, number], q: number, kappa: number, kappaWind: number): void {
+  step(vel: WebGLTexture, scale: number, W: [number, number], q: number, kappa: number, kappaWind: number, vCap: number): void {
     const N = this.N;
     this.heat.write.bind();
     this.prog.use().tex("uVel", 0, vel).tex("uHeat", 1, this.heat.read.tex).tex("uObs", 2, this.obs)
-      .iv2("uN", N, N).v2("uW", W[0], W[1]).f("uScale", scale).f("uQ", q).f("uKappa", kappa).f("uKappaWind", kappaWind);
+      .iv2("uN", N, N).v2("uW", W[0], W[1]).f("uScale", scale).f("uQ", q).f("uKappa", kappa).f("uKappaWind", kappaWind).f("uVCap", vCap);
     drawQuad(this.gl);
     this.heat.swap();
   }

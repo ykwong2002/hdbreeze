@@ -84,6 +84,9 @@ export function fill(s: LevelSession, style: "naive" | "reference"): void {
 export async function runCalibration(s: LevelSession, log: (line: string) => void): Promise<Row[]> {
   const rows: Row[] = [];
   const sim = await s.overlay.ready;
+  // headless renderers run few frames per second; more substeps per frame let the flow develop in time
+  const normalSubsteps = sim.params.substeps;
+  sim.params.substeps = Math.max(normalSubsteps, 12);
   const settle = async (): Promise<void> => {
     const target = sim.frameCount + SETTLE_FRAMES;
     while (sim.frameCount < target) await new Promise((r) => setTimeout(r, 200));
@@ -101,6 +104,7 @@ export async function runCalibration(s: LevelSession, log: (line: string) => voi
       log(`${row.season.padEnd(3)} ${row.scenario.padEnd(10)} satisfaction ${row.satisfaction.toFixed(1).padStart(5)}  homes ${row.homes}  [${rots}]`);
     }
   }
+  sim.params.substeps = normalSubsteps;
   const naive = Math.min(...rows.filter((r) => r.scenario === "naive").map((r) => r.satisfaction));
   const ref = Math.min(...rows.filter((r) => r.scenario === "reference").map((r) => r.satisfaction));
   const suggested = Math.round(naive + 0.6 * (ref - naive));

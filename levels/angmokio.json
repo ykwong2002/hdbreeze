@@ -82,11 +82,10 @@
     ]
   ],
   "targets": {
-    "satisfaction": 20,
+    "satisfaction": 45,
     "holdSeconds": 4
   },
   "calibration": {
-    "ne_empty": 7.4,
-    "method": "sun-exposure model 2026-10-12, single-page probes (machine under load); Ang Mo Kio provisional"
+    "method": "provisional after wind-chill cap 2026-10-12: exposed breezy walkway ~31.5 C (comfort 0.4), shaded ~28 C; threshold set between all-exposed and half-shaded; recalibrate with ?calib=1 on a real GPU"
   }
 }

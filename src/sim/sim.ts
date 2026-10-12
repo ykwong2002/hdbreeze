@@ -18,6 +18,8 @@ export interface VisParams {
   q: number;
   kappa: number;
   kappaWind: number;
+  /** Cells per frame beyond which more wind brings no extra relief from the sun. */
+  vCap: number;
   tMax: number;
   particleSpeed: number;
   fade: number;
@@ -33,7 +35,7 @@ export class WindSim {
   readonly raster: ObstacleRaster;
   readonly readback: HeatReadback;
   readonly params: WindParams;
-  readonly vis: VisParams = { q: 0.3, kappa: 0.03, kappaWind: 0.2, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
+  readonly vis: VisParams = { q: 0.3, kappa: 0.03, kappaWind: 0.2, vCap: 1.0, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
   readonly bbox: [number, number, number, number];
   readonly metresPerCell: number;
   private probe: StatsProbe;
@@ -134,7 +136,7 @@ export class WindSim {
     for (let s = 0; s < this.params.substeps; s++) this.solver.step(this.params);
     const scale = this.solver.cellsPerSubstep * this.params.substeps;
     const W = windVector(this.params.fromDeg);
-    this.heat.step(this.solver.velocity, scale, W, this.vis.q, this.vis.kappa, this.vis.kappaWind);
+    this.heat.step(this.solver.velocity, scale, W, this.vis.q, this.vis.kappa, this.vis.kappaWind, this.vis.vCap);
     this.particles.step(this.solver.velocity, scale, this.vis.particleSpeed, this.vis.fade);
     this.frames++;
     this.readback.poll();
