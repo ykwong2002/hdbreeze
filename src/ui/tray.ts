@@ -30,12 +30,25 @@ export function mountTray(root: HTMLElement, blocks: Blocks, onSelect: (t: Typol
       onSelect(selected);
       refresh();
     };
-    b.onpointerdown = (ev) => {
+    b.onpointerdown = (down) => {
       if (b.disabled || !onDragStart) return;
-      selected = item.type;
-      onSelect(selected);
-      refresh();
-      onDragStart(item.type, ev);
+      const id = down.pointerId, x0 = down.clientX, y0 = down.clientY;
+      const stop = (): void => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", stop); window.removeEventListener("pointercancel", stop); };
+      const move = (ev: PointerEvent): void => {
+        if (ev.pointerId !== id) return;
+        const dx = ev.clientX - x0, dy = ev.clientY - y0;
+        if (-dy > 14 && -dy > Math.abs(dx)) {
+          // lifted up out of the tray: this is a drop, not a scroll
+          stop();
+          selected = item.type;
+          onSelect(selected);
+          refresh();
+          onDragStart(item.type, ev);
+        } else if (Math.abs(dx) > 14) stop(); // sideways: let the row scroll
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", stop);
+      window.addEventListener("pointercancel", stop);
     };
     chips.set(item.type, b);
     row.append(b);
