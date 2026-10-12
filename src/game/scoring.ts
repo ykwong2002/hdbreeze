@@ -1,8 +1,16 @@
-/** Satisfaction score and level-clear logic (docs/plan.md 4.2). */
+/**
+ * Breathability score and plot-clear logic (docs/plan-v6.md).
+ * Breathability = how far the precinct's walkways sit between the careless plan (0 %) and the empty
+ * plot (100 %), measured on this device during the intro; both baselines are per season.
+ */
 export interface ScoreState {
-  /** 0..100, eased. */
-  satisfaction: number;
+  /** 0..100, eased; -1 while the season has no baseline yet. */
+  breath: number;
+  breathOk: boolean;
+  measuring: boolean;
   meanFeelsLike: number;
+  /** Mean comfort 0..100 (flavour: resident mood). */
+  satisfaction: number;
   homes: number;
   homesOk: boolean;
   placed: number;
@@ -12,12 +20,20 @@ export interface ScoreState {
   spotsTotal: number;
   spotsOk: boolean;
   spotsMargin: boolean;
-  satisfactionOk: boolean;
-  /** 0..1 progress through the hold window while both conditions are true. */
+  /** Breathable enough and every neighbour spot cooled. */
+  airOk: boolean;
+  /** 0..1 progress through the hold window while every condition is true. */
   hold: number;
   cleared: boolean;
   /** Seasons whose hold has been completed. */
   held: string[];
+  /** Breathability at the moment each season's hold completed. */
+  seasonPct: Record<string, number>;
+}
+
+export interface Baseline {
+  empty: number;
+  careless: number;
 }
 
 export function feelsLikeC(T: number, tMax: number): number {
@@ -31,9 +47,16 @@ export function comfortFromFeels(feels: number): number {
   return 1 - t * t * (3 - 2 * t);
 }
 
+export function breathPct(feels: number, b: Baseline): number {
+  const span = b.careless - b.empty;
+  if (span < 0.3) return feels <= b.empty + 0.3 ? 100 : 0; // degenerate plot: the careless plan did not heat it
+  return 100 * Math.min(1, Math.max(0, (b.careless - feels) / span));
+}
+
 export class Scoring {
   readonly state: ScoreState;
   private holdSec = 0;
+  readonly baselines: Record<string, Baseline> = {};
 
   /** Season currently being held; set by the level. */
   season = "";
@@ -44,36 +67,47 @@ export class Scoring {
 
   constructor(
     readonly targetHomes: number,
-    readonly threshold: number,
+    readonly passPct: number,
+    readonly starPct: number,
     readonly holdSeconds: number,
   ) {
-    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, spotsCooled: 0, spotsTotal: 0, spotsOk: false, spotsMargin: false, satisfactionOk: false, hold: 0, cleared: false, held: [] };
+    this.state = { breath: -1, breathOk: false, measuring: true, meanFeelsLike: 27, satisfaction: 0, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, spotsCooled: 0, spotsTotal: 0, spotsOk: true, spotsMargin: true, airOk: false, hold: 0, cleared: false, held: [], seasonPct: {} };
+  }
+
+  setBaseline(season: string, b: Baseline): void {
+    this.baselines[season] = b;
+  }
+  hasBaseline(season: string): boolean {
+    return season in this.baselines;
   }
 
   update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number, placed = 0, toPlace = 0, spots?: { cooled: number; total: number; ok: boolean; margin: boolean }): ScoreState {
     const s = this.state;
-    // eddies shed behind blocks make the instantaneous field flicker; average over a few seconds
-    const tau = this.state.satisfaction === 0 && meanComfort !== null ? 0.3 : 4.0;
-    if (meanComfort !== null) {
-      const target = 100 * meanComfort;
-      const k = 1 - Math.exp(-dt / tau);
-      s.satisfaction += (target - s.satisfaction) * k;
-    }
-    if (meanFeels !== null) s.meanFeelsLike += (meanFeels - s.meanFeelsLike) * (1 - Math.exp(-dt / tau));
+    const tau = 2.0; // eddies make the field flicker; average over a couple of seconds
+    const k = 1 - Math.exp(-dt / tau);
+    if (meanComfort !== null) s.satisfaction += (100 * meanComfort - s.satisfaction) * k;
+    if (meanFeels !== null) s.meanFeelsLike += (meanFeels - s.meanFeelsLike) * k;
+    const b = this.baselines[this.season];
+    s.measuring = !b;
+    if (b && meanFeels !== null) {
+      const target = breathPct(meanFeels, b);
+      s.breath = s.breath < 0 ? target : s.breath + (target - s.breath) * k;
+    } else if (!b) s.breath = -1;
+    s.breathOk = s.breath >= this.passPct;
     s.homes = homes;
     s.homesOk = homes >= this.targetHomes;
     s.placed = placed;
     s.toPlace = toPlace;
     s.allPlaced = toPlace > 0 && placed >= toPlace;
-    if (spots) { s.spotsCooled = spots.cooled; s.spotsTotal = spots.total; s.spotsOk = spots.ok; s.spotsMargin = spots.margin; }
-    // the line is the hot spots when a level has them, else the old satisfaction threshold
-    s.satisfactionOk = s.spotsTotal > 0 ? s.spotsOk : s.satisfaction >= this.threshold;
+    if (spots) { s.spotsCooled = spots.cooled; s.spotsTotal = spots.total; s.spotsOk = spots.total === 0 || spots.ok; s.spotsMargin = spots.total === 0 || spots.margin; }
+    s.airOk = s.breathOk && s.spotsOk;
     const alreadyHeld = s.held.includes(this.season);
-    if (s.allPlaced && s.homesOk && s.satisfactionOk && !s.cleared && !alreadyHeld) {
+    if (s.allPlaced && s.homesOk && s.airOk && !s.cleared && !alreadyHeld) {
       this.holdSec += dt;
       s.hold = Math.min(1, this.holdSec / this.holdSeconds);
       if (this.holdSec >= this.holdSeconds) {
         s.held.push(this.season);
+        s.seasonPct[this.season] = Math.round(s.breath);
         this.holdSec = 0;
         s.hold = 0;
         const remaining = this.required.filter((r) => !s.held.includes(r));
@@ -87,18 +121,19 @@ export class Scoring {
     return s;
   }
 
-  /** Score needed for the margin star: 6 above the line, but never above 98. */
-  marginStarScore(): number {
-    return Math.min(this.threshold + 6, 98);
+  /** Lowest breathability across the held seasons. */
+  minSeasonPct(): number {
+    const v = Object.values(this.state.seasonPct);
+    return v.length ? Math.min(...v) : Math.round(this.state.breath);
   }
 
-  /** 1 star for clearing, 2 for a clear margin (every spot 1.5 C under target) or homes >= 1.2x target, 3 for both. */
+  /** 1 star for clearing, 2 when every season sat at or above starPct, 3 when homes also beat the target by 15 %. */
   stars(): number {
     const s = this.state;
     if (!s.cleared) return 0;
-    const margin = s.spotsTotal > 0 ? s.spotsMargin : Math.round(s.satisfaction) >= this.marginStarScore();
-    const homes = s.homes >= 1.2 * this.targetHomes;
-    return 1 + (margin ? 1 : 0) + (homes ? 1 : 0);
+    const star2 = this.minSeasonPct() >= this.starPct && s.spotsMargin;
+    const star3 = star2 && s.homes >= 1.15 * this.targetHomes;
+    return 1 + (star2 ? 1 : 0) + (star3 ? 1 : 0);
   }
 
   /** A layout change invalidates earlier season holds. */
@@ -106,6 +141,7 @@ export class Scoring {
     this.holdSec = 0;
     this.state.hold = 0;
     this.state.held = [];
+    this.state.seasonPct = {};
   }
 
   reset(): void {

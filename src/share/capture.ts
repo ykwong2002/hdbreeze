@@ -38,10 +38,10 @@ export async function captureShareImage(map: MlMap, o: { levelName: string; stat
   ctx.font = "800 54px -apple-system, Helvetica, Arial, sans-serif";
   ctx.fillText(`HDBreeze · ${o.levelName}`, 56, H - 200);
   ctx.font = "700 120px -apple-system, Helvetica, Arial, sans-serif";
-  ctx.fillText(`${o.state.satisfaction.toFixed(0)}`, 56, H - 80);
+  ctx.fillText(`${Math.max(0, o.state.breath).toFixed(0)}%`, 56, H - 80);
   ctx.font = "500 40px -apple-system, Helvetica, Arial, sans-serif";
   ctx.fillStyle = "#6d6962";
-  ctx.fillText(`satisfaction · ${o.state.homes.toLocaleString()} residents housed · feels like ${o.state.meanFeelsLike.toFixed(1)} °C`, 260, H - 110);
+  ctx.fillText(`breathable · ${o.state.homes.toLocaleString()} people housed · feels like ${o.state.meanFeelsLike.toFixed(1)} °C`, 260, H - 110);
   ctx.fillStyle = "#e8b84a";
   ctx.font = "64px -apple-system, Helvetica, Arial, sans-serif";
   ctx.fillText("★".repeat(o.stars) + "☆".repeat(3 - o.stars), 260, H - 180);

@@ -442,3 +442,47 @@ body.in-level .hint { top: calc(246px + var(--safe-top)); }
 @keyframes hs-pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 56, 42, 0.55); } 100% { box-shadow: 0 0 0 16px rgba(217, 56, 42, 0); } }
 .score-spots { font-weight: 600; }
 .score-spots.ok { color: var(--cool); }
+
+/* v6: town overview, plot card, why cards, score rows */
+.townview { position: fixed; left: 50%; bottom: calc(10px + var(--safe-bottom)); z-index: 6; transform: translateX(-50%); width: min(400px, calc(100% - 20px)); padding: 10px 12px 8px; background: rgba(255, 255, 255, 0.94); border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18); }
+.townview-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.townview-head strong { display: block; font-size: 16px; }
+.townview-head small { color: var(--ink-soft); font-size: 12px; }
+.tv-list { display: flex; flex-direction: column; gap: 6px; }
+.tv-plot { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; text-align: left; font: inherit; color: var(--ink); background: #fff; border: 1px solid #e3dfd7; border-radius: 12px; }
+.tv-plot.locked { opacity: 0.55; }
+.tv-n { flex: 0 0 28px; height: 28px; display: grid; place-items: center; font-weight: 800; color: #fff; background: var(--cool); border-radius: 50%; }
+.tv-plot.locked .tv-n { background: #9a948a; }
+.tv-body { flex: 1; min-width: 0; }
+.tv-body strong { display: block; font-size: 14px; }
+.tv-body small { display: block; font-size: 11px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-stars { font-size: 14px; color: #e8b84a; letter-spacing: 1px; }
+.tv-hint { margin: 6px 0 0; font-size: 11px; color: var(--ink-soft); text-align: center; }
+.plotcard { position: fixed; inset: 0; z-index: 7; display: grid; place-items: end center; padding: 20px; padding-bottom: calc(24px + var(--safe-bottom)); pointer-events: none; }
+.plotcard-box { pointer-events: auto; width: min(400px, 100%); padding: 16px 18px 14px; background: rgba(255, 255, 255, 0.96); border-radius: 18px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); }
+.plotcard-box small { color: var(--ink-soft); font-size: 12px; }
+.plotcard-box h2 { margin: 2px 0 8px; font-size: 20px; }
+.pc-fact { margin: 0 0 8px; font-size: 13px; line-height: 1.35; }
+.pc-status { display: flex; align-items: center; gap: 8px; margin: 10px 0; padding: 8px 10px; font-size: 13px; line-height: 1.3; background: #f4f2ed; border-radius: 10px; }
+.plotcard.careless .pc-status { background: #fde3dd; }
+.plotcard.ready .pc-status { background: #dff1f1; }
+.pc-spinner { flex: 0 0 14px; width: 14px; height: 14px; border: 2px solid var(--cool); border-right-color: transparent; border-radius: 50%; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pc-build { width: 100%; }
+.pc-build:disabled { opacity: 0.4; }
+.why .howto-box { text-align: center; }
+.why-ico { font-size: 44px; line-height: 1; margin-bottom: 6px; }
+.why-p { font-size: 14px; line-height: 1.45; text-align: left; margin: 0 0 12px; }
+.why-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
+.why-dots i { width: 8px; height: 8px; border-radius: 50%; background: #d8d3ca; }
+.why-dots i.on { background: var(--cool); }
+.title-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+.about p { font-size: 13px; line-height: 1.4; }
+.score-row { font-size: 12px; }
+.score-row.ok { color: var(--cool); font-weight: 600; }
+.score-seasons b { padding: 1px 6px; border-radius: 999px; background: #e8e4dc; font-weight: 600; }
+.score-seasons b.now { outline: 2px solid var(--ink); }
+.score-seasons b.ok { background: var(--cool); color: #fff; }
+.endcard-lesson { margin: 0 0 12px; padding: 8px 10px; font-size: 13px; line-height: 1.35; text-align: left; background: #f4f2ed; border-radius: 10px; }
+body.in-intro .tray, body.in-intro .hud, body.in-intro .comment, body.in-intro .hint { visibility: hidden; }
+body.in-intro #map { pointer-events: none; }

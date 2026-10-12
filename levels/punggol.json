@@ -1,19 +1,8 @@
 {
   "id": "punggol",
   "name": "Punggol",
-  "subzone": "PUNGGOL TOWN CENTRE",
   "planningArea": "PUNGGOL",
-  "tagline": "HDB modelled the wind here before building. Can you?",
-  "brief": "Two walkways by the town centre never feel the breeze. Angle your 3 slabs so it curls into them.",
-  "camera": {
-    "center": [
-      103.9036,
-      1.4074
-    ],
-    "zoom": 15.7,
-    "pitch": 55,
-    "bearing": 20
-  },
+  "tagline": "A waterfront town HDB modelled for wind before building.",
   "wind": {
     "seasons": [
       {
@@ -33,99 +22,42 @@
       "ne"
     ]
   },
-  "areas": [
+  "plots": [
     {
-      "id": "a",
-      "label": "Reserve site, north",
+      "id": "p1",
+      "label": "Punggol East",
       "at": [
-        103.90393,
-        1.4095
+        103.91841,
+        1.40399
       ]
     },
     {
-      "id": "b",
-      "label": "Reserve site, west",
+      "id": "p2",
+      "label": "Northshore edge",
       "at": [
-        103.90263,
-        1.40901
+        103.91457,
+        1.41028
       ]
     },
     {
-      "id": "c",
+      "id": "p3",
       "label": "Town centre site",
       "at": [
         103.90439,
         1.40626
+      ],
+      "gpr": 3.0,
+      "hotspots": [
+        {
+          "id": "mall",
+          "label": "Mall entrance",
+          "at": [
+            103.904859,
+            1.407761
+          ],
+          "targetC": 32.0
+        }
       ]
-    }
-  ],
-  "site": {
-    "marginM": 40
-  },
-  "hotspots": [
-    {
-      "id": "bus",
-      "label": "Bus interchange",
-      "at": [
-        103.902689,
-        1.404972
-      ],
-      "targetC": 33.0
-    },
-    {
-      "id": "mall",
-      "label": "Mall entrance",
-      "at": [
-        103.904859,
-        1.407761
-      ],
-      "targetC": 32.0
-    }
-  ],
-  "tray": [
-    {
-      "type": "slab",
-      "count": 3
-    }
-  ],
-  "heights": {
-    "low": 8,
-    "mid": 16,
-    "high": 30
-  },
-  "targets": {
-    "holdSeconds": 4
-  },
-  "reference": [
-    {
-      "type": "slab",
-      "at": [
-        103.90309,
-        1.404948
-      ],
-      "rotDeg": 150,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "slab",
-      "at": [
-        103.90508,
-        1.407426
-      ],
-      "rotDeg": 125,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "slab",
-      "at": [
-        103.903,
-        1.409
-      ],
-      "rotDeg": 150,
-      "height": "mid",
-      "voidDeck": false
     }
   ]
 }
