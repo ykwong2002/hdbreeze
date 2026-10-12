@@ -1,4 +1,4 @@
-import { blocksOverlap, fitInside, pointInRing } from "./fit";
+import { blocksOverlap, fitInside, pointInRing, rectContains, rectCorners } from "./fit";
 import type { Area, BakedLevel, HeightStep, LonLat, Ring, TrayItem } from "./level-types";
 import { columnsFor, RESIDENTS_PER_FLAT, typology, VOID_DECK_M, type TypologyId } from "./typologies";
 
@@ -44,7 +44,25 @@ export class Blocks {
   private listeners: Array<() => void> = [];
   private seq = 0;
 
-  constructor(readonly level: BakedLevel) {}
+  /** Existing building footprints that touch the site; blocks may not overlap them. */
+  private readonly fixed: Ring[];
+  /** v5: the whole site is one build area. */
+  private readonly siteArea: Area;
+
+  constructor(readonly level: BakedLevel) {
+    const site = level.site;
+    this.siteArea = { id: "site", label: "Site", polygon: site, areaM2: 0 };
+    this.fixed = level.buildings.map((b) => b.fp).filter((fp) => fp.some((p) => pointInRing(p, site)));
+  }
+
+  private hitsFixed(center: LonLat, type: TypologyId, rotDeg: number): boolean {
+    const corners = typology(type).rects.flatMap((r) => rectCorners(center, r, rotDeg));
+    for (const ring of this.fixed) {
+      for (const c of corners) if (pointInRing(c, ring)) return true;
+      for (const v of ring) if (typology(type).rects.some((r) => rectContains(center, r, rotDeg, v))) return true;
+    }
+    return false;
+  }
 
   onChange(cb: () => void): void {
     this.listeners.push(cb);
@@ -84,10 +102,10 @@ export class Blocks {
   }
 
   areaAt(p: LonLat): Area | undefined {
-    return this.level.areas.find((a) => pointInRing(p, a.polygon));
+    return pointInRing(p, this.siteArea.polygon) ? this.siteArea : undefined;
   }
-  area(id: string): Area | undefined {
-    return this.level.areas.find((a) => a.id === id);
+  area(_id: string): Area | undefined {
+    return this.siteArea;
   }
   get(id: string): Block | undefined {
     return this.blocks.find((b) => b.id === id);
@@ -96,6 +114,7 @@ export class Blocks {
   private fits(area: Area, b: Omit<Block, "id" | "areaId">, ignoreId?: string): { center: LonLat } | PlaceResult {
     const center = fitInside(area.polygon, b.type, b.center, b.rotDeg);
     if (!center) return { ok: false, reason: "no-fit" };
+    if (this.hitsFixed(center, b.type, b.rotDeg)) return { ok: false, reason: "overlap" };
     const fp = { center, type: b.type, rotDeg: b.rotDeg };
     for (const other of this.blocks) {
       if (other.id === ignoreId) continue;

@@ -21,7 +21,7 @@ export function ringCentroid(ring: Ring): LonLat {
 }
 
 /** Rotated rectangle corners in lon/lat. */
-function rectCorners(center: LonLat, r: Rect, rotDeg: number): LonLat[] {
+export function rectCorners(center: LonLat, r: Rect, rotDeg: number): LonLat[] {
   const a = (rotDeg * Math.PI) / 180;
   const cos = Math.cos(a), sin = Math.sin(a);
   const mLon = M_PER_DEG_LAT * Math.cos((center[1] * Math.PI) / 180);
@@ -97,4 +97,13 @@ export function blocksOverlap(a: Footprint, b: Footprint, gapM = 4): boolean {
   const rb = rectsInMetres(b.center, b.type, b.rotDeg, a.center, 0);
   for (const x of ra) for (const y of rb) if (polysOverlap(x, y)) return true;
   return false;
+}
+
+/** True if lon/lat point `p` lies inside the rotated rectangle. */
+export function rectContains(center: LonLat, r: Rect, rotDeg: number, p: LonLat): boolean {
+  const a = (-rotDeg * Math.PI) / 180;
+  const mLon = M_PER_DEG_LAT * Math.cos((center[1] * Math.PI) / 180);
+  const dx = (p[0] - center[0]) * mLon, dy = (p[1] - center[1]) * M_PER_DEG_LAT;
+  const lx = dx * Math.cos(a) - dy * Math.sin(a) - r.cx, ly = dx * Math.sin(a) + dy * Math.cos(a) - r.cy;
+  return Math.abs(lx) <= r.w / 2 && Math.abs(ly) <= r.h / 2;
 }

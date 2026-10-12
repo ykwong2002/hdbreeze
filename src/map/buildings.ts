@@ -37,7 +37,7 @@ export function addLevelLayers(map: MlMap, level: BakedLevel): void {
     promoteId: "id",
     data: {
       type: "FeatureCollection",
-      features: level.areas.map((p) => ({
+      features: [{ id: "site", label: "Site", polygon: level.site, areaM2: 0 }].map((p) => ({
         type: "Feature",
         properties: { id: p.id, label: p.label },
         geometry: { type: "Polygon", coordinates: [p.polygon] },

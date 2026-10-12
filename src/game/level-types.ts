@@ -37,6 +37,14 @@ export interface TrayItem {
   count: number;
 }
 
+/** A walkway point the breeze cannot reach in the empty town; the player must cool it below targetC. */
+export interface HotSpotDef {
+  id: string;
+  label: string;
+  at: LonLat;
+  targetC: number;
+}
+
 export interface ReferenceBlock {
   type: TypologyName;
   at: LonLat;
@@ -67,10 +75,14 @@ export interface BakedLevel {
   district: Ring;
   /** Neighbourhood the player can influence: residents walk here and the field is full colour here. */
   scoreZone: Ring;
+  /** The one buildable site (blocks must sit inside it and off existing buildings). */
+  site: Ring;
   areas: Area[];
+  hotspots: HotSpotDef[];
   tray: TrayItem[];
   heights: Record<HeightStep, number>;
-  hotspots: LonLat[];
+  /** Where residents linger (walk graph hot nodes). */
+  hangouts: LonLat[];
   ground: { kind: GroundKind; polygon: Ring }[];
   buildings: BakedBuilding[];
   paths: { nodes: LonLat[]; edges: [number, number][] };

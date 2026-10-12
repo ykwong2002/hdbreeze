@@ -1,12 +1,16 @@
 {
   "id": "tengah",
   "name": "Tengah",
-  "subzone": "BRICKLAND",
+  "subzone": "PLANTATION",
   "planningArea": "TENGAH",
   "tagline": "Singapore's newest town, planned around wind from day one.",
-  "brief": "Place all 6 blocks in the highlighted areas. Keep the walkways breezy and house everyone.",
+  "brief": "The last empty plot in Plantation. Two spots north of it never feel the breeze; steer it to them with 4 blocks.",
   "camera": {
-    "zoom": 15.4,
+    "center": [
+      103.7327,
+      1.3533
+    ],
+    "zoom": 15.7,
     "pitch": 55,
     "bearing": 0
   },
@@ -32,41 +36,44 @@
   "areas": [
     {
       "id": "a",
-      "label": "Brickland, west",
+      "label": "Plantation site",
       "at": [
-        103.74032,
-        1.36718
+        103.73302,
+        1.3525
       ]
+    }
+  ],
+  "site": {
+    "marginM": 150
+  },
+  "hotspots": [
+    {
+      "id": "bus",
+      "label": "Bus stop",
+      "at": [
+        103.73274,
+        1.35398
+      ],
+      "targetC": 30
     },
     {
-      "id": "b",
-      "label": "Brickland, central",
+      "id": "play",
+      "label": "Playground",
       "at": [
-        103.74187,
-        1.36838
-      ]
-    },
-    {
-      "id": "c",
-      "label": "Brickland, east",
-      "at": [
-        103.74546,
-        1.36832
-      ]
+        103.73274,
+        1.35361
+      ],
+      "targetC": 30
     }
   ],
   "tray": [
     {
       "type": "slab",
-      "count": 2
-    },
-    {
-      "type": "l",
-      "count": 2
+      "count": 3
     },
     {
       "type": "point",
-      "count": 2
+      "count": 1
     }
   ],
   "heights": {
@@ -74,17 +81,49 @@
     "mid": 16,
     "high": 30
   },
-  "hotspots": [
-    [
-      103.743,
-      1.368
-    ]
-  ],
   "targets": {
-    "satisfaction": 55,
     "holdSeconds": 4
   },
-  "calibration": {
-    "method": "provisional after wind-chill cap 2026-10-12: exposed breezy walkway ~31.5 C (comfort 0.4), shaded ~28 C; threshold set between all-exposed and half-shaded; recalibrate with ?calib=1 on a real GPU"
-  }
+  "reference": [
+    {
+      "type": "slab",
+      "at": [
+        103.733057,
+        1.353901
+      ],
+      "rotDeg": 172,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "slab",
+      "at": [
+        103.732513,
+        1.354215
+      ],
+      "rotDeg": 128,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "slab",
+      "at": [
+        103.733045,
+        1.35333
+      ],
+      "rotDeg": 172,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "point",
+      "at": [
+        103.732345,
+        1.353734
+      ],
+      "rotDeg": 0,
+      "height": "mid",
+      "voidDeck": false
+    }
+  ]
 }
