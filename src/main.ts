@@ -234,9 +234,15 @@ async function boot(): Promise<void> {
         if (demo) void import("./dev/demo").then(({ runDemo }) => runDemo(s, hdb.map));
       });
       const card = plotcard;
-      const autoWait = (label: string): Promise<void> => (isHarness() ? Promise.resolve() : demo ? new Promise((r) => { card.status(`<strong>This is 0% breathable.</strong> Walls across the wind, every block tall. (${label})`, "careless"); window.setTimeout(r, 5000); }) : card.wait(label));
+      const demoMod = demo ? await import("./dev/demo") : null;
+      if (demoMod) demoMod.caption(1, `A real empty plot in ${s.level.name}`, `${s.level.plotLabel ?? ""} · house ${s.level.targets.homes.toLocaleString()} people, keep it breathable`);
+      const autoWait = (label: string): Promise<void> => (isHarness() ? Promise.resolve() : demo ? new Promise((r) => { card.status(`<strong>This is 0% breathable.</strong> Walls across the wind, every block tall. (${label})`, "careless"); window.setTimeout(r, 6000); }) : card.wait(label));
       void runIntro(s, {
-        status: (text, phase) => { card.status(text, phase); if (demo && phase === "done") window.setTimeout(() => ui.querySelector<HTMLButtonElement>(".pc-build")?.click(), 1500); },
+        status: (text, phase) => {
+          card.status(text, phase);
+          if (demoMod && phase === "careless") demoMod.caption(2, "The careless plan", "walls across the wind, every block tall: 0% breathable");
+          if (demoMod && phase === "done") window.setTimeout(() => ui.querySelector<HTMLButtonElement>(".pc-build")?.click(), 1500);
+        },
         wait: autoWait,
       }, params.has("recal") || demo).catch((e) => { console.error("[hdbreeze] intro", e); card.status("", "done"); });
     } else if (!quiet) onboarding = mountOnboarding(ui, s);

@@ -48,9 +48,9 @@ export function comfortFromFeels(feels: number): number {
 }
 
 export function breathPct(feels: number, b: Baseline): number {
-  const span = b.careless - b.empty;
-  if (span < 0.3) return feels <= b.empty + 0.3 ? 100 : 0; // degenerate plot: the careless plan did not heat it
-  return 100 * Math.min(1, Math.max(0, (b.careless - feels) / span));
+  // never let the scale collapse on a plot the careless plan barely heats: at least 1 C from empty to 0 %
+  const span = Math.max(1.0, b.careless - b.empty);
+  return 100 * Math.min(1, Math.max(0, (b.empty + span - feels) / span));
 }
 
 export class Scoring {

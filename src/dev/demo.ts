@@ -3,20 +3,35 @@ import type { LevelSession } from "../game/level";
 import { fill } from "../game/fill";
 
 /**
- * Demo autoplay (`?demo=1&level=<plot>`), for screen recordings: after the intro it places the
- * aligned layout one block at a time while the camera slowly orbits, opens a few void decks and
- * lets the plot clear. The intro's "My turn" and "Build" taps happen on their own.
+ * Demo autoplay (`?demo=1&level=<plot>`), for screen recordings: titled sections, the intro's taps
+ * happen on their own, then the aligned layout goes down one block at a time while the camera
+ * orbits, void decks open, and the plot clears.
  */
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
+let captionEl: HTMLElement | null = null;
+/** Big section title at the top of the screen; empty text hides it. */
+export function caption(n: number | null, title: string, sub = ""): void {
+  if (!captionEl) {
+    captionEl = document.createElement("div");
+    captionEl.className = "demo-caption";
+    document.getElementById("ui")?.append(captionEl);
+  }
+  if (!title) { captionEl.classList.remove("on"); return; }
+  captionEl.innerHTML = `${n !== null ? `<i>${n}</i>` : ""}<div><strong>${title}</strong>${sub ? `<span>${sub}</span>` : ""}</div>`;
+  captionEl.classList.remove("on");
+  void captionEl.offsetWidth;
+  captionEl.classList.add("on");
+}
+
 export async function runDemo(s: LevelSession, map: MlMap): Promise<void> {
   await s.overlay.ready;
-  // work out the aligned layout, then replay it block by block
   fill(s, "aligned");
   const plan = s.blocks.blocks.map((b) => ({ type: b.type, at: b.center, rot: b.rotDeg, height: b.height }));
   s.blocks.clearAll();
   s.select(null);
   const c = centre(s);
+  caption(3, "Now a planner\u2019s layout", "rows along the wind, gaps between them");
   map.easeTo({ center: c, zoom: s.level.camera.zoom + 0.2, pitch: 60, bearing: map.getBearing() + 60, duration: 1200 + plan.length * 900, easing: (t) => t, essential: true });
   await sleep(1200);
   for (const p of plan) {
@@ -25,8 +40,8 @@ export async function runDemo(s: LevelSession, map: MlMap): Promise<void> {
     await sleep(900);
   }
   s.select(null);
-  await sleep(1500);
-  // open void decks on the first few residential blocks, one by one
+  await sleep(2500);
+  caption(4, "Open the void decks", "the breeze passes underneath, where people walk");
   let opened = 0;
   for (const b of s.blocks.blocks) {
     if (opened >= 3 || b.voidDeck || b.type === "mscp") continue;
@@ -37,7 +52,12 @@ export async function runDemo(s: LevelSession, map: MlMap): Promise<void> {
     await sleep(900);
   }
   s.select(null);
+  await sleep(3000);
+  const st = s.scoring.state;
+  caption(5, `${Math.max(0, Math.round(st.breath))}% breathable`, `${st.homes.toLocaleString()} people housed on the same plot`);
   map.easeTo({ center: c, pitch: 55, bearing: map.getBearing() + 40, duration: 12_000, easing: (t) => t, essential: true });
+  await sleep(6000);
+  caption(null, "");
 }
 
 function centre(s: LevelSession): [number, number] {
