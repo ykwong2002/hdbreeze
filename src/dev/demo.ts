@@ -42,17 +42,15 @@ export async function runDemo(s: LevelSession, map: MlMap): Promise<void> {
   s.select(null);
   await sleep(2500);
   caption(4, "Open the void decks", "the breeze passes underneath, where people walk");
-  let opened = 0;
   for (const b of s.blocks.blocks) {
-    if (opened >= 3 || b.voidDeck || b.type === "mscp") continue;
+    if (b.voidDeck || b.type === "mscp") continue;
     s.select(b.id);
-    await sleep(500);
+    await sleep(350);
     s.blocks.toggleVoid(b.id);
-    opened++;
-    await sleep(900);
+    await sleep(450);
   }
   s.select(null);
-  await sleep(3000);
+  await sleep(6000);
   const st = s.scoring.state;
   caption(5, `${Math.max(0, Math.round(st.breath))}% breathable`, `${st.homes.toLocaleString()} people housed on the same plot`);
   map.easeTo({ center: c, pitch: 55, bearing: map.getBearing() + 40, duration: 12_000, easing: (t) => t, essential: true });
