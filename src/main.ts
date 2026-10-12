@@ -78,7 +78,7 @@ async function boot(): Promise<void> {
   document.addEventListener("touchmove", (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
   const coarse = window.matchMedia("(pointer: coarse)").matches;
-  if (!coarse) document.querySelector(".brand-touch")?.setAttribute("hidden", "");
+  document.body.classList.add(coarse ? "touch" : "mouse");
   const checking = params.has("check") || params.has("export");
   const demo = params.has("demo");
   const quiet = checking || isHarness() || demo;

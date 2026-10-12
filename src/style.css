@@ -518,7 +518,11 @@ body.in-intro #map { pointer-events: none; }
 .leveltip span { display: flex; align-items: center; gap: 5px; }
 .leveltip .ico { color: var(--cool); width: 15px; height: 15px; }
 body.in-intro .leveltip { visibility: hidden; }
-.brand-touch { font-size: 11px; }
+.mapnote { position: fixed; left: 50%; top: calc(14px + var(--safe-top)); z-index: 3; transform: translateX(-50%); margin: 0; padding: 7px 12px; font-size: 12px; line-height: 1.2; color: var(--ink-soft); background: rgba(255, 255, 255, 0.86); border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(0, 0, 0, 0.08); pointer-events: none; white-space: nowrap; max-width: calc(100vw - 190px); overflow: hidden; text-overflow: ellipsis; }
+.mapnote-touch, .mapnote-mouse { display: none; }
+body.touch .mapnote-touch, body.mouse .mapnote-mouse { display: inline; }
+body.in-level .mapnote, body.in-intro .mapnote { display: none; }
+@media (max-width: 480px) { .mapnote { top: calc(58px + var(--safe-top)); left: 12px; right: 12px; transform: none; max-width: none; white-space: normal; text-align: center; } }
 .endcard-lesson .ico { color: #e8b84a; }
 .score-row .ico { color: var(--ink-soft); }
 .score-row.ok .ico { color: var(--cool); }
