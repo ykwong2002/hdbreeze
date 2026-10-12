@@ -145,7 +145,8 @@ async function boot(): Promise<void> {
       else toolbar?.hide();
     });
     s.onReject(() => tray?.shake());
-    onboarding = mountOnboarding(ui, s);
+    const checking = new URLSearchParams(location.search).has("check");
+    if (!checking) onboarding = mountOnboarding(ui, s);
     s.onHint((text) => {
       const h = document.createElement("div");
       h.className = "hint";
@@ -174,7 +175,10 @@ async function boot(): Promise<void> {
       const { runCheck } = await import("./dev/check");
       const box = document.createElement("pre");
       box.className = "calib";
-      box.textContent = "checking…\n";
+      box.textContent = "checking… keep this tab in the foreground (browsers pause background tabs)\n";
+      box.style.maxHeight = "72vh";
+      box.style.overflow = "auto";
+      box.style.userSelect = "text";
       ui.append(box);
       await s.overlay.ready;
       const sim = s.overlay.sim!;
@@ -185,6 +189,7 @@ async function boot(): Promise<void> {
     bubbles = mountBubbles(ui, hdb.map);
     s.onSpeech((sp) => bubbles?.say(sp.lonLat(), sp.text, sp.tier, sp.lonLat));
     s.onCleared(() => {
+      if (checking) return;
       s.select(null);
       endcard = showEndCard(ui, {
         levelName: s.level.name,

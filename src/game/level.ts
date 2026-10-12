@@ -9,7 +9,7 @@ import { FIRST_LABEL_LAYER } from "../map/style";
 import type { SolverKind } from "../sim/solver";
 import type { BuildingGeom } from "../sim/obstacles";
 import { Agents, type Agent } from "./agents";
-import type { BakedLevel, LonLat, Season } from "./level-types";
+import type { BakedLevel, HotSpotDef, LonLat, Season } from "./level-types";
 import { pickLine, tierFor, type Tier } from "./lines";
 import type { ResidentBrain } from "../lm/resident";
 import { Blocks, type PlaceResult } from "./blocks";
@@ -30,6 +30,8 @@ export interface LevelSession {
   /** Authored wind-starved spots with live temperatures. */
   hotSpots: HotSpot[];
   onHotSpots(cb: (spots: HotSpot[]) => void): void;
+  /** Dev: replace the spots at runtime (solver page). */
+  setHotSpots(defs: HotSpotDef[]): void;
   /** Optional tiny language model for fresh resident lines. */
   brain: ResidentBrain | null;
   blocks: Blocks;
@@ -126,6 +128,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let samplePtsDirty = true;
   let hotSpots: HotSpot[] = [];
   const hotSpotListeners: Array<(spots: HotSpot[]) => void> = [];
+  let simRef: Awaited<typeof overlay.ready> | null = null;
   let nextSpeech = performance.now() + 4000;
   let lastLine = "";
   let clearedFired = false;
@@ -133,6 +136,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     .then((sim) => {
       agents = new Agents(level, (lon, lat) => sim.toCell(lon, lat), sim.metresPerCell, 40);
       const ag = agents;
+      simRef = sim;
       hotSpots = makeHotSpots(level.hotspots, (lon, lat) => sim.toCell(lon, lat), sim.metresPerCell);
       for (const cb of hotSpotListeners) cb(hotSpots);
       map.addLayer(createAgentsLayer(AGENTS_ID, level.bbox, level.grid, () => ag.agents).layer, FIRST_LABEL_LAYER);
@@ -256,6 +260,13 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
       return hotSpots;
     },
     onHotSpots: (cb) => { hotSpotListeners.push(cb); if (hotSpots.length) cb(hotSpots); },
+    setHotSpots(defs) {
+      const sim = simRef;
+      if (!sim) return;
+      hotSpots = makeHotSpots(defs, (lon, lat) => sim.toCell(lon, lat), sim.metresPerCell);
+      scoring.invalidateHolds();
+      for (const cb of hotSpotListeners) cb(hotSpots);
+    },
     get brain() {
       return self2.brain;
     },
