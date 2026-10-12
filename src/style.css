@@ -6,7 +6,7 @@
   --cool: #2a9d9f;
   --hot: #e36b3a;
   --radius: 14px;
-  --footer-h: 58px;
+  --footer-h: 8px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
@@ -127,6 +127,7 @@ body {
   bottom: calc(var(--footer-h) + var(--safe-bottom));
   right: calc(4px + var(--safe-right));
 }
+body.in-level .maplibregl-ctrl-bottom-right { bottom: calc(118px + var(--safe-bottom)); }
 
 .maplibregl-ctrl-attrib.maplibregl-compact {
   max-width: calc(100vw - 32px);
@@ -387,7 +388,6 @@ body.in-level .hint { top: calc(246px + var(--safe-top)); }
 .toolbar.shake { animation: none; }
 .toolbar.shake .tb { animation: shake 0.4s; }
 
-body.in-level .maplibregl-ctrl-bottom-right { display: none; }
 
 /* ---- M6: title, how-to, hints */
 .title { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; padding: 20px; background: linear-gradient(180deg, rgba(244, 242, 237, 0.55), rgba(244, 242, 237, 0.92)); }
@@ -431,3 +431,14 @@ body.in-level .maplibregl-ctrl-bottom-right { display: none; }
 .drag-ghost { position: fixed; left: 0; top: 0; z-index: 7; padding: 8px 12px; font: 600 13px/1 inherit; color: #fff; background: var(--cool); border-radius: 999px; pointer-events: none; will-change: transform; text-transform: capitalize; }
 .drag-ghost[hidden] { display: none; }
 .chip-tray { touch-action: none; }
+
+.hotspot { position: fixed; left: 0; top: 0; z-index: 3; pointer-events: none; will-change: transform; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hs-ring { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--hot); background: rgba(217, 56, 42, 0.25); animation: hs-pulse 1.6s ease-out infinite; }
+.hs-label { font: 600 11px/1 inherit; color: #fff; background: var(--hot); padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+.hs-label b { margin-left: 4px; font-weight: 600; }
+.hs-label i { margin-left: 3px; font-style: normal; font-weight: 400; opacity: 0.85; }
+.hotspot.cooled .hs-ring { border-color: var(--cool); background: rgba(42, 157, 159, 0.3); animation: none; }
+.hotspot.cooled .hs-label { background: var(--cool); }
+@keyframes hs-pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 56, 42, 0.55); } 100% { box-shadow: 0 0 0 16px rgba(217, 56, 42, 0); } }
+.score-spots { font-weight: 600; }
+.score-spots.ok { color: var(--cool); }

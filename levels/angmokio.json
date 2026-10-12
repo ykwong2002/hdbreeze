@@ -4,9 +4,13 @@
   "subzone": "CHENG SAN",
   "planningArea": "ANG MO KIO",
   "tagline": "A mature town. Make it work in both monsoons.",
-  "brief": "Place all 6 blocks in the highlighted areas. The walkways must stay breezy in both monsoons.",
+  "brief": "Two spots in Cheng San miss both monsoons. Steer the breeze into them with 4 blocks, in both seasons.",
   "camera": {
-    "zoom": 15.4,
+    "center": [
+      103.8492,
+      1.3741
+    ],
+    "zoom": 15.6,
     "pitch": 55,
     "bearing": 0
   },
@@ -33,10 +37,10 @@
   "areas": [
     {
       "id": "a",
-      "label": "Cheng San, north",
+      "label": "Cheng San, west",
       "at": [
-        103.85722,
-        1.37556
+        103.84842,
+        1.37402
       ]
     },
     {
@@ -46,27 +50,38 @@
         103.85029,
         1.37072
       ]
+    }
+  ],
+  "site": {
+    "marginM": 60
+  },
+  "hotspots": [
+    {
+      "id": "hawker",
+      "label": "Hawker centre",
+      "at": [
+        103.84848,
+        1.37543
+      ],
+      "targetC": 30
     },
     {
-      "id": "c",
-      "label": "Cheng San, west",
+      "id": "bus",
+      "label": "Bus stop",
       "at": [
-        103.84842,
-        1.37402
-      ]
+        103.84908,
+        1.37468
+      ],
+      "targetC": 30
     }
   ],
   "tray": [
     {
       "type": "slab",
-      "count": 2
-    },
-    {
-      "type": "point",
       "count": 3
     },
     {
-      "type": "courtyard",
+      "type": "point",
       "count": 1
     }
   ],
@@ -75,17 +90,49 @@
     "mid": 16,
     "high": 30
   },
-  "hotspots": [
-    [
-      103.853,
-      1.3735
-    ]
-  ],
   "targets": {
-    "satisfaction": 45,
     "holdSeconds": 4
   },
-  "calibration": {
-    "method": "provisional after wind-chill cap 2026-10-12: exposed breezy walkway ~31.5 C (comfort 0.4), shaded ~28 C; threshold set between all-exposed and half-shaded; recalibrate with ?calib=1 on a real GPU"
-  }
+  "reference": [
+    {
+      "type": "slab",
+      "at": [
+        103.848797,
+        1.375351
+      ],
+      "rotDeg": 172,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "slab",
+      "at": [
+        103.848253,
+        1.375665
+      ],
+      "rotDeg": 128,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "slab",
+      "at": [
+        103.849397,
+        1.374601
+      ],
+      "rotDeg": 172,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "point",
+      "at": [
+        103.848853,
+        1.374915
+      ],
+      "rotDeg": 0,
+      "height": "mid",
+      "voidDeck": false
+    }
+  ]
 }

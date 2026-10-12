@@ -24,10 +24,13 @@ interface AuthoredLevel {
   camera: { zoom: number; pitch: number; bearing: number };
   wind: BakedLevel["wind"];
   areas: { id: string; label: string; at: Pt; polygon?: Ring }[];
+  /** Buildable site: an authored polygon, or the hull of the parcels (+ margin) when omitted. */
+  site?: { polygon?: Ring; marginM?: number };
+  hotspots: { id: string; label: string; at: Pt; targetC: number }[];
+  hangouts?: Pt[];
   tray: TrayItem[];
   heights: Record<HeightStep, number>;
-  hotspots: Pt[];
-  targets: { homes?: number; satisfaction: number; holdSeconds: number };
+  targets: { homes?: number; satisfaction?: number; holdSeconds: number };
   reference?: ReferenceBlock[];
   calibration?: Record<string, number>;
 }
@@ -120,11 +123,17 @@ async function main(): Promise<void> {
   }
   if (areas.length < 2) console.warn(`only ${areas.length} build areas; the plan asks for 2-3`);
 
-  // Score zone: convex hull of the areas, pushed out 150 m
-  const zone = expandRing(convexHull(areas.flatMap((x) => x.polygon)), SCORE_ZONE_M);
+  // Buildable site: authored polygon, else the hull of the parcels pushed out by the margin (default 30 m);
+  // the score zone is the site pushed out a further 150 m.
+  const site: Ring = a.site?.polygon
+    ? round6(a.site.polygon)
+    : round6(expandRing(convexHull(areas.flatMap((x) => x.polygon)), a.site?.marginM ?? 30));
+  const zone = expandRing(site, SCORE_ZONE_M);
+  const hotspots = a.hotspots ?? [];
+  for (const h of hotspots) if (!pointInRing(h.at, site)) console.warn(`hot spot ${h.id} (${h.label}) lies outside the site`);
   // Footways from the map plus walkways through and around the build areas (parcels are empty, so the
   // map has none there): residents must walk where the player builds for the blocks to matter.
-  const synth = synthWays(areas.map((x) => x.polygon), a.hotspots);
+  const synth = synthWays(areas.map((x) => x.polygon), [...(a.hangouts ?? []), ...hotspots.map((h) => h.at)]);
   const paths = buildPaths([...ways, ...synth], bbox, zone);
   console.log(`paths: ${paths.nodes.length} nodes (${synth.length} synthetic walkways through the areas)`);
 
@@ -138,8 +147,8 @@ async function main(): Promise<void> {
     contextBbox: [ctx.w, ctx.s, ctx.e, ctx.n].map(r6) as BakedLevel["bbox"],
     district: round6(simplifyRing(sz.ring, 3)),
     scoreZone: round6(zone),
-    areas, tray: a.tray, heights: a.heights, hotspots: a.hotspots, ground, buildings, paths,
-    targets: { homes, satisfaction: a.targets.satisfaction, holdSeconds: a.targets.holdSeconds },
+    site, areas, hotspots, tray: a.tray, heights: a.heights, hangouts: a.hangouts ?? [], ground, buildings, paths,
+    targets: { homes, satisfaction: a.targets.satisfaction ?? 0, holdSeconds: a.targets.holdSeconds },
     ...(a.reference ? { reference: a.reference } : {}),
     ...(a.calibration ? { calibration: a.calibration } : {}),
     bakedAt: new Date().toISOString().slice(0, 10),

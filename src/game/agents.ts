@@ -40,7 +40,7 @@ export class Agents {
     count = 40,
   ) {
     this.metresPerCellValue = metresPerCell;
-    this.areaRings = level.areas.map((a) => a.polygon.map((p) => toCell(p[0], p[1])));
+    this.areaRings = [level.site].map((ring) => ring.map((p) => toCell(p[0], p[1])));
     this.areaReach = 35 / metresPerCell; // the walkways through and right around the build areas
     // residents only use walkways within reach of the build areas: that is the neighbourhood the player shapes
     this.graph = buildGraph(level, toCell, metresPerCell, (m) => this.nearArea(m));
@@ -207,7 +207,7 @@ function buildGraph(level: BakedLevel, toCell: (lon: number, lat: number) => [nu
   kept.forEach(([a, b], e) => { adj[a]!.push(e); adj[b]!.push(e); });
   const hot = new Set<number>();
   const reach = 120 / metresPerCell;
-  for (const h of level.hotspots as LonLat[]) {
+  for (const h of level.hangouts as LonLat[]) {
     const c = toCell(h[0], h[1]);
     let best = -1, bestD = reach;
     nodes.forEach((p, i) => { if (!adj[i]!.length) return; const d = Math.hypot(p[0] - c[0], p[1] - c[1]); if (d < bestD) { bestD = d; best = i; } });

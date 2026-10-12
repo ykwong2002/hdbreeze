@@ -20,7 +20,7 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
   const el = document.createElement("section");
   el.className = "endcard";
   const stars = "★".repeat(o.stars) + "☆".repeat(3 - o.stars);
-  const margin = Math.round(o.state.satisfaction) >= o.marginScore;
+  const margin = o.state.spotsTotal > 0 ? o.state.spotsMargin : Math.round(o.state.satisfaction) >= o.marginScore;
   const extra = o.state.homes >= 1.2 * o.targetHomes;
   el.innerHTML = `
     <div class="endcard-box">
@@ -30,7 +30,7 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
       <p class="endcard-sub">Feels like ${o.state.meanFeelsLike.toFixed(1)} °C on the walkways.</p>
       <ul class="endcard-stars-why">
         <li>★ Cleared the level</li>
-        <li class="${margin ? "got" : "missed"}">★ Clear margin (score ${o.marginScore}+)</li>
+        <li class="${margin ? "got" : "missed"}">★ ${o.state.spotsTotal > 0 ? "Every hot spot 1.5 °C under target" : `Clear margin (score ${o.marginScore}+)`}</li>
         <li class="${extra ? "got" : "missed"}">★ 20% more homes than needed (${Math.ceil(1.2 * o.targetHomes).toLocaleString()}+)</li>
       </ul>
       <div class="endcard-btns">
@@ -48,7 +48,7 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
     if (!l) return;
     el.querySelector<HTMLElement>(".endcard-score strong")!.textContent = l.state.satisfaction.toFixed(0);
     el.querySelector<HTMLElement>(".endcard-stars")!.textContent = "★".repeat(l.stars) + "☆".repeat(3 - l.stars);
-    el.querySelectorAll<HTMLElement>(".endcard-stars-why li")[1]!.className = Math.round(l.state.satisfaction) >= o.marginScore ? "got" : "missed";
+    el.querySelectorAll<HTMLElement>(".endcard-stars-why li")[1]!.className = (l.state.spotsTotal > 0 ? l.state.spotsMargin : Math.round(l.state.satisfaction) >= o.marginScore) ? "got" : "missed";
   }, 500);
   const stop = (): void => window.clearInterval(live);
   const text = `I ventilated ${o.levelName} in HDBreeze 🌬️ ${stars} satisfaction ${o.state.satisfaction.toFixed(0)}/100, ${o.state.homes.toLocaleString()} residents housed. Can you beat it? ${location.origin}${location.pathname}`;

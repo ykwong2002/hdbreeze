@@ -12,11 +12,11 @@
   {
     "id": "tengah",
     "name": "Tengah",
-    "subzone": "BRICKLAND",
+    "subzone": "PLANTATION",
     "tagline": "Singapore's newest town, planned around wind from day one.",
     "center": [
-      103.742073,
-      1.368473
+      103.736024,
+      1.352735
     ]
   },
   {

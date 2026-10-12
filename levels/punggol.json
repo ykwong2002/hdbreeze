@@ -4,9 +4,13 @@
   "subzone": "PUNGGOL TOWN CENTRE",
   "planningArea": "PUNGGOL",
   "tagline": "HDB modelled the wind here before building. Can you?",
-  "brief": "Place all 6 blocks in the highlighted areas. Keep the walkways breezy and house everyone.",
+  "brief": "Two walkways sit in the wind shadow of the town centre. Angle your 4 blocks so the breeze curls into them.",
   "camera": {
-    "zoom": 15.2,
+    "center": [
+      103.9036,
+      1.4074
+    ],
+    "zoom": 15.7,
     "pitch": 55,
     "bearing": 20
   },
@@ -55,6 +59,29 @@
       ]
     }
   ],
+  "site": {
+    "marginM": 40
+  },
+  "hotspots": [
+    {
+      "id": "bus",
+      "label": "Bus stop",
+      "at": [
+        103.90439,
+        1.40837
+      ],
+      "targetC": 30
+    },
+    {
+      "id": "play",
+      "label": "Playground",
+      "at": [
+        103.90254,
+        1.40582
+      ],
+      "targetC": 30
+    }
+  ],
   "tray": [
     {
       "type": "slab",
@@ -62,10 +89,6 @@
     },
     {
       "type": "point",
-      "count": 2
-    },
-    {
-      "type": "courtyard",
       "count": 1
     }
   ],
@@ -74,17 +97,49 @@
     "mid": 16,
     "high": 30
   },
-  "hotspots": [
-    [
-      103.9043,
-      1.4075
-    ]
-  ],
   "targets": {
-    "satisfaction": 50,
     "holdSeconds": 4
   },
-  "calibration": {
-    "method": "provisional after wind-chill cap 2026-10-12: exposed breezy walkway ~31.5 C (comfort 0.4), shaded ~28 C; threshold set between all-exposed and half-shaded; recalibrate with ?calib=1 on a real GPU"
-  }
+  "reference": [
+    {
+      "type": "slab",
+      "at": [
+        103.904707,
+        1.408291
+      ],
+      "rotDeg": 172,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "slab",
+      "at": [
+        103.904163,
+        1.408605
+      ],
+      "rotDeg": 128,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "slab",
+      "at": [
+        103.902857,
+        1.405741
+      ],
+      "rotDeg": 172,
+      "height": "mid",
+      "voidDeck": false
+    },
+    {
+      "type": "point",
+      "at": [
+        103.902351,
+        1.406033
+      ],
+      "rotDeg": 0,
+      "height": "mid",
+      "voidDeck": false
+    }
+  ]
 }

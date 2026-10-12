@@ -8,6 +8,10 @@ export interface ScoreState {
   placed: number;
   toPlace: number;
   allPlaced: boolean;
+  spotsCooled: number;
+  spotsTotal: number;
+  spotsOk: boolean;
+  spotsMargin: boolean;
   satisfactionOk: boolean;
   /** 0..1 progress through the hold window while both conditions are true. */
   hold: number;
@@ -43,10 +47,10 @@ export class Scoring {
     readonly threshold: number,
     readonly holdSeconds: number,
   ) {
-    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, satisfactionOk: false, hold: 0, cleared: false, held: [] };
+    this.state = { satisfaction: 0, meanFeelsLike: 27, homes: 0, homesOk: false, placed: 0, toPlace: 0, allPlaced: false, spotsCooled: 0, spotsTotal: 0, spotsOk: false, spotsMargin: false, satisfactionOk: false, hold: 0, cleared: false, held: [] };
   }
 
-  update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number, placed = 0, toPlace = 0): ScoreState {
+  update(dt: number, meanComfort: number | null, meanFeels: number | null, homes: number, placed = 0, toPlace = 0, spots?: { cooled: number; total: number; ok: boolean; margin: boolean }): ScoreState {
     const s = this.state;
     // eddies shed behind blocks make the instantaneous field flicker; average over a few seconds
     const tau = this.state.satisfaction === 0 && meanComfort !== null ? 0.3 : 4.0;
@@ -61,7 +65,9 @@ export class Scoring {
     s.placed = placed;
     s.toPlace = toPlace;
     s.allPlaced = toPlace > 0 && placed >= toPlace;
-    s.satisfactionOk = s.satisfaction >= this.threshold;
+    if (spots) { s.spotsCooled = spots.cooled; s.spotsTotal = spots.total; s.spotsOk = spots.ok; s.spotsMargin = spots.margin; }
+    // the line is the hot spots when a level has them, else the old satisfaction threshold
+    s.satisfactionOk = s.spotsTotal > 0 ? s.spotsOk : s.satisfaction >= this.threshold;
     const alreadyHeld = s.held.includes(this.season);
     if (s.allPlaced && s.homesOk && s.satisfactionOk && !s.cleared && !alreadyHeld) {
       this.holdSec += dt;
@@ -86,11 +92,11 @@ export class Scoring {
     return Math.min(this.threshold + 6, 98);
   }
 
-  /** 1 star for clearing, 2 for a clear margin or homes >= 1.2x target, 3 for both. */
+  /** 1 star for clearing, 2 for a clear margin (every spot 1.5 C under target) or homes >= 1.2x target, 3 for both. */
   stars(): number {
     const s = this.state;
     if (!s.cleared) return 0;
-    const margin = Math.round(s.satisfaction) >= this.marginStarScore();
+    const margin = s.spotsTotal > 0 ? s.spotsMargin : Math.round(s.satisfaction) >= this.marginStarScore();
     const homes = s.homes >= 1.2 * this.targetHomes;
     return 1 + (margin ? 1 : 0) + (homes ? 1 : 0);
   }
