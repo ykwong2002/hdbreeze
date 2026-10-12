@@ -1,19 +1,8 @@
 {
   "id": "tengah",
   "name": "Tengah",
-  "subzone": "PLANTATION",
   "planningArea": "TENGAH",
   "tagline": "Singapore's newest town, planned around wind from day one.",
-  "brief": "The last empty plot in Plantation. Two spots beside it never feel the breeze; steer it to them with 3 slabs.",
-  "camera": {
-    "center": [
-      103.7327,
-      1.3533
-    ],
-    "zoom": 15.7,
-    "pitch": 55,
-    "bearing": 0
-  },
   "wind": {
     "seasons": [
       {
@@ -33,83 +22,41 @@
       "ne"
     ]
   },
-  "areas": [
+  "plots": [
     {
-      "id": "a",
-      "label": "Plantation site",
+      "id": "p1",
+      "label": "Plantation, last plot",
       "at": [
         103.73302,
         1.3525
+      ],
+      "hotspots": [
+        {
+          "id": "play",
+          "label": "Playground",
+          "at": [
+            103.732738,
+            1.353979
+          ],
+          "targetC": 32.0
+        }
       ]
-    }
-  ],
-  "site": {
-    "marginM": 150
-  },
-  "hotspots": [
-    {
-      "id": "bus",
-      "label": "Bus stop",
-      "at": [
-        103.731175,
-        1.351365
-      ],
-      "targetC": 33.5
     },
     {
-      "id": "play",
-      "label": "Playground",
+      "id": "p2",
+      "label": "Garden district",
       "at": [
-        103.732738,
-        1.353979
-      ],
-      "targetC": 32.0
-    }
-  ],
-  "tray": [
-    {
-      "type": "slab",
-      "count": 3
-    }
-  ],
-  "heights": {
-    "low": 8,
-    "mid": 16,
-    "high": 30
-  },
-  "targets": {
-    "holdSeconds": 4
-  },
-  "reference": [
-    {
-      "type": "slab",
-      "at": [
-        103.730965,
-        1.351624
-      ],
-      "rotDeg": 150,
-      "height": "mid",
-      "voidDeck": false
+        103.73466,
+        1.37293
+      ]
     },
     {
-      "type": "slab",
+      "id": "p3",
+      "label": "Park district",
       "at": [
-        103.731486,
-        1.351185
-      ],
-      "rotDeg": 150,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "slab",
-      "at": [
-        103.732337,
-        1.354003
-      ],
-      "rotDeg": 150,
-      "height": "mid",
-      "voidDeck": false
+        103.73314,
+        1.36921
+      ]
     }
   ]
 }

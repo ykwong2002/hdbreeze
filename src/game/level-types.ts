@@ -55,9 +55,53 @@ export interface ReferenceBlock {
 
 export type GroundKind = "park" | "water" | "road" | "paved";
 
+/** One plot of a town, as listed on the town overview. */
+export interface PlotSummary {
+  /** Level id of the baked plot (`<town>-<plot>`). */
+  id: string;
+  /** 1-based order on the overview; plots unlock in this order. */
+  n: number;
+  label: string;
+  polygon: Ring;
+  center: LonLat;
+  areaM2: number;
+  /** Master Plan gross plot ratio used for the tray. */
+  gpr: number;
+  /** Flats the plot ratio allows (area x gpr / 100 m2), for the intro card. */
+  flatsAllowed: number;
+  homes: number;
+  blocks: number;
+  seasons: string[];
+  hotspots: number;
+}
+
+/** public/levels/<town>.json: a town and its plots. */
+export interface TownData {
+  id: string;
+  name: string;
+  tagline: string;
+  planningArea: string;
+  /** Planning-area outline (simplified). */
+  outline: Ring;
+  center: LonLat;
+  wind: { seasons: Season[]; required: string[] };
+  plots: PlotSummary[];
+}
+
 export interface BakedLevel {
   id: string;
   name: string;
+  /** v6: the town this plot belongs to and its position in the sequence. */
+  town?: string;
+  plotIndex?: number;
+  plotCount?: number;
+  plotLabel?: string;
+  gpr?: number;
+  areaM2?: number;
+  flatsAllowed?: number;
+  /** Breathability needed to clear (percent of the way from the careless plan to the empty plot). */
+  passPct?: number;
+  starPct?: number;
   /** Master Plan 2019 subzone name. */
   subzone: string;
   tagline: string;
@@ -99,4 +143,6 @@ export interface LevelIndexEntry {
   subzone: string;
   tagline: string;
   center: LonLat;
+  /** v6: number of plots (towns) */
+  plots?: number;
 }

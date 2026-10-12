@@ -1,64 +1,66 @@
 import type { ScoreState } from "../game/scoring";
 
 export interface EndCardOptions {
-  levelName: string;
+  townName: string;
+  plotLabel: string;
+  plotIndex: number;
+  plotCount: number;
   state: ScoreState;
   stars: number;
-  threshold: number;
+  minPct: number;
+  starPct: number;
   targetHomes: number;
-  marginScore: number;
-  /** Re-reads the live score so the card matches the HUD. */
-  live?: () => { state: ScoreState; stars: number };
-  onContinue(): void;
-  onTowns(): void;
-  /** Produces the share image; absent when capture is unavailable. */
+  lesson: string;
+  /** Town totals when this was the last plot. */
+  townSummary?: { homes: number; avgPct: number; stars: number };
+  onNext(): void;
+  onTown(): void;
+  onReplay(): void;
   image?: () => Promise<Blob>;
 }
 
-/** Level-cleared card with a share button (Web Share API, clipboard fallback). */
+/** Plot-cleared card (or town-cleared when it was the last plot) with share. */
 export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): void } {
   const el = document.createElement("section");
   el.className = "endcard";
   const stars = "★".repeat(o.stars) + "☆".repeat(3 - o.stars);
-  const margin = o.state.spotsTotal > 0 ? o.state.spotsMargin : Math.round(o.state.satisfaction) >= o.marginScore;
-  const extra = o.state.homes >= 1.2 * o.targetHomes;
+  const last = !!o.townSummary;
+  const title = last ? `${o.townName} cleared!` : `Plot ${o.plotIndex} of ${o.plotCount} cleared`;
+  const summary = last
+    ? `<p class="endcard-score"><strong>${o.townSummary!.homes.toLocaleString()}</strong> people housed across ${o.plotCount} plots · ${o.townSummary!.avgPct}% breathable on average · ${o.townSummary!.stars} / ${o.plotCount * 3} ★</p>`
+    : `<p class="endcard-score"><strong>${o.minPct}%</strong> breathable · ${o.state.homes.toLocaleString()} people housed</p>`;
   el.innerHTML = `
     <div class="endcard-box">
       <div class="endcard-stars">${stars}</div>
-      <h2>${o.levelName} cleared</h2>
-      <p class="endcard-score"><strong>${o.state.satisfaction.toFixed(0)}</strong> satisfaction · ${o.state.homes.toLocaleString()} residents housed</p>
-      <p class="endcard-sub">Feels like ${o.state.meanFeelsLike.toFixed(1)} °C on the walkways.</p>
+      <h2>${title}</h2>
+      <p class="endcard-sub">${o.plotLabel}</p>
+      ${summary}
+      <p class="endcard-lesson">💡 ${o.lesson}</p>
       <ul class="endcard-stars-why">
-        <li>★ Cleared the level</li>
-        <li class="${margin ? "got" : "missed"}">★ ${o.state.spotsTotal > 0 ? "Every hot spot 1.5 °C under target" : `Clear margin (score ${o.marginScore}+)`}</li>
-        <li class="${extra ? "got" : "missed"}">★ 20% more homes than needed (${Math.ceil(1.2 * o.targetHomes).toLocaleString()}+)</li>
+        <li>★ Cleared the plot</li>
+        <li class="${o.minPct >= o.starPct && o.state.spotsMargin ? "got" : "missed"}">★ ${o.starPct}%+ breathable in every monsoon</li>
+        <li class="${o.state.homes >= 1.15 * o.targetHomes ? "got" : "missed"}">★ 15% more homes than needed (${Math.ceil(1.15 * o.targetHomes).toLocaleString()}+)</li>
       </ul>
       <div class="endcard-btns">
-        <button class="btn btn-primary share">Share image</button>
-        <button class="btn cont">Keep building</button>
-        <button class="btn towns">Towns</button>
+        ${last ? '<button class="btn btn-primary town">Town overview</button>' : '<button class="btn btn-primary next">Next plot →</button>'}
+        <button class="btn share">Share image</button>
+        <button class="btn replay">Keep building</button>
+        ${last ? "" : '<button class="btn town">Town overview</button>'}
         <button class="btn btn-link share-text">copy as text instead</button>
       </div>
       <p class="endcard-note share-note" hidden>Copied to clipboard.</p>
     </div>`;
   root.append(el);
-  // keep the number in step with the HUD while the card is up
-  const live = window.setInterval(() => {
-    const l = o.live?.();
-    if (!l) return;
-    el.querySelector<HTMLElement>(".endcard-score strong")!.textContent = l.state.satisfaction.toFixed(0);
-    el.querySelector<HTMLElement>(".endcard-stars")!.textContent = "★".repeat(l.stars) + "☆".repeat(3 - l.stars);
-    el.querySelectorAll<HTMLElement>(".endcard-stars-why li")[1]!.className = (l.state.spotsTotal > 0 ? l.state.spotsMargin : Math.round(l.state.satisfaction) >= o.marginScore) ? "got" : "missed";
-  }, 500);
-  const stop = (): void => window.clearInterval(live);
-  const text = `I ventilated ${o.levelName} in HDBreeze 🌬️ ${stars} satisfaction ${o.state.satisfaction.toFixed(0)}/100, ${o.state.homes.toLocaleString()} residents housed. Can you beat it? ${location.origin}${location.pathname}`;
+  const text = last
+    ? `I planned ${o.townName} in HDBreeze 🌬️ ${o.townSummary!.homes.toLocaleString()} people housed, ${o.townSummary!.avgPct}% breathable, ${o.townSummary!.stars}★. Can you plan a cooler town? ${location.origin}${location.pathname}`
+    : `I cleared ${o.plotLabel} (${o.townName}) in HDBreeze 🌬️ ${stars} ${o.minPct}% breathable, ${o.state.homes.toLocaleString()} people housed. ${location.origin}${location.pathname}`;
   const note = el.querySelector<HTMLElement>(".share-note")!;
   el.querySelector<HTMLButtonElement>(".share-text")!.onclick = async () => {
     const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };
     try {
       if (nav.share) await nav.share({ text });
       else { await navigator.clipboard.writeText(text); note.textContent = "Copied to clipboard."; note.hidden = false; }
-    } catch { /* user cancelled */ }
+    } catch { /* cancelled */ }
   };
   el.querySelector<HTMLButtonElement>(".share")!.onclick = async () => {
     try {
@@ -72,7 +74,8 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
       note.hidden = false;
     }
   };
-  el.querySelector<HTMLButtonElement>(".cont")!.onclick = () => { stop(); el.remove(); o.onContinue(); };
-  el.querySelector<HTMLButtonElement>(".towns")!.onclick = () => { stop(); el.remove(); o.onTowns(); };
-  return { unmount: () => { stop(); el.remove(); } };
+  el.querySelector<HTMLButtonElement>(".next")?.addEventListener("click", () => { el.remove(); o.onNext(); });
+  el.querySelector<HTMLButtonElement>(".replay")!.onclick = () => { el.remove(); o.onReplay(); };
+  el.querySelectorAll<HTMLButtonElement>(".town").forEach((b) => { b.onclick = () => { el.remove(); o.onTown(); }; });
+  return { unmount: () => el.remove() };
 }

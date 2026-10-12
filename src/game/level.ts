@@ -34,6 +34,10 @@ export interface LevelSession {
   setHotSpots(defs: HotSpotDef[]): void;
   /** Optional tiny language model for fresh resident lines. */
   brain: ResidentBrain | null;
+  /** Instantaneous mean felt temperature over the sample walkways (null until the readback runs). */
+  readonly lastFeels: number | null;
+  /** Pauses residents, speech and clearing while the intro measures baselines. */
+  intro: boolean;
   blocks: Blocks;
   scoring: Scoring;
   agents: Agents | null;
@@ -88,7 +92,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
 
   const blocks = new Blocks(level);
   const self2 = { brain: null as ResidentBrain | null };
-  const scoring = new Scoring(level.targets.homes, level.targets.satisfaction, level.targets.holdSeconds);
+  const scoring = new Scoring(level.targets.homes, level.passPct ?? 60, level.starPct ?? 75, level.targets.holdSeconds);
   scoring.required = level.wind.required;
   const hintListeners: Array<(text: string) => void> = [];
   let selected: string | null = null;
@@ -132,6 +136,8 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let nextSpeech = performance.now() + 4000;
   let lastLine = "";
   let clearedFired = false;
+  let lastFeels: number | null = null;
+  const flags = { intro: false };
   overlay.ready
     .then((sim) => {
       agents = new Agents(level, (lon, lat) => sim.toCell(lon, lat), sim.metresPerCell, 40);
@@ -148,7 +154,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
         const now = performance.now();
         const dt = Math.min(0.1, (now - last) / 1000);
         last = now;
-        ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
+        if (!flags.intro) ag.update(dt, (x, y) => sim.readback.sample(x, y, sim.n), sim.vis.tMax);
         // satisfaction (flavour) from the walkways near the site; the authored hot spots gate the clear
         let meanComfort: number | null = null, meanFeels: number | null = null;
         let spotsState: { cooled: number; total: number; ok: boolean; margin: boolean } | undefined;
@@ -165,17 +171,18 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
             c += comfortFromFeels(feels); f += feels; n++;
           }
           if (n) { meanComfort = c / n; meanFeels = f / n; }
+          lastFeels = meanFeels;
           const u = updateHotSpots(hotSpots, sim.readback, sim.n, sim.vis.tMax);
           spotsState = { cooled: hotSpots.filter((h) => h.cooled).length, total: hotSpots.length, ok: u.allCooled, margin: u.marginOk };
           if (u.meanFeels !== null) meanFeels = u.meanFeels;
         }
         const state = scoring.update(dt, meanComfort, meanFeels, blocks.homes(), blocks.blocks.length, blocks.total(), spotsState);
         for (const cb of scoreListeners) cb(state);
-        if (state.cleared && !clearedFired) {
+        if (state.cleared && !clearedFired && !flags.intro) {
           clearedFired = true;
           for (const cb of clearedListeners) cb();
         }
-        if (now >= nextSpeech && ag.agents.length && sim.readback.ready) {
+        if (now >= nextSpeech && ag.agents.length && sim.readback.ready && !flags.intro) {
           nextSpeech = now + 6500 + Math.random() * 3000; // one comment every 6-10 s, held in the strip
           const a = ag.agents[Math.floor(Math.random() * ag.agents.length)]!;
           const tier = tierFor(a.comfort);
@@ -217,6 +224,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     for (const cb of selectListeners) cb(selected);
   };
   const tap = (at: LonLat, hitBlockId: string | null): ReturnType<LevelSession["tap"]> => {
+    if (flags.intro) return "deselected";
     if (hitBlockId && !(selected && self.moveMode())) {
       select(hitBlockId);
       return "selected";
@@ -269,6 +277,15 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     },
     get brain() {
       return self2.brain;
+    },
+    get lastFeels() {
+      return lastFeels;
+    },
+    get intro() {
+      return flags.intro;
+    },
+    set intro(v) {
+      flags.intro = v;
     },
     set brain(b) {
       self2.brain = b;

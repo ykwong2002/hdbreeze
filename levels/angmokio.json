@@ -1,19 +1,8 @@
 {
   "id": "angmokio",
   "name": "Ang Mo Kio",
-  "subzone": "CHENG SAN",
   "planningArea": "ANG MO KIO",
   "tagline": "A mature town. Make it work in both monsoons.",
-  "brief": "Two spots in Cheng San miss both monsoons. Steer the breeze into them with 3 slabs, in both seasons.",
-  "camera": {
-    "center": [
-      103.8492,
-      1.3741
-    ],
-    "zoom": 15.6,
-    "pitch": 55,
-    "bearing": 0
-  },
   "wind": {
     "seasons": [
       {
@@ -34,91 +23,34 @@
       "sw"
     ]
   },
-  "areas": [
+  "plots": [
     {
-      "id": "a",
-      "label": "Cheng San, west",
+      "id": "p1",
+      "label": "Cheng San north",
       "at": [
-        103.84842,
-        1.37402
+        103.85722,
+        1.37556
+      ],
+      "required": [
+        "ne"
       ]
     },
     {
-      "id": "b",
-      "label": "Reserve site, south",
+      "id": "p2",
+      "label": "Ang Mo Kio Ave 5",
+      "at": [
+        103.85336,
+        1.38088
+      ]
+    },
+    {
+      "id": "p3",
+      "label": "Cheng San reserve",
       "at": [
         103.85029,
         1.37072
-      ]
-    }
-  ],
-  "site": {
-    "marginM": 60
-  },
-  "hotspots": [
-    {
-      "id": "hawker",
-      "label": "Hawker centre",
-      "at": [
-        103.84854,
-        1.375605
       ],
-      "targetC": 33.5
-    },
-    {
-      "id": "play",
-      "label": "Playground",
-      "at": [
-        103.8502,
-        1.37334
-      ],
-      "targetC": 33.0
-    }
-  ],
-  "tray": [
-    {
-      "type": "slab",
-      "count": 3
-    }
-  ],
-  "heights": {
-    "low": 8,
-    "mid": 16,
-    "high": 30
-  },
-  "targets": {
-    "holdSeconds": 4
-  },
-  "reference": [
-    {
-      "type": "slab",
-      "at": [
-        103.848141,
-        1.375651
-      ],
-      "rotDeg": 20,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "slab",
-      "at": [
-        103.8499,
-        1.3731
-      ],
-      "rotDeg": 60,
-      "height": "mid",
-      "voidDeck": false
-    },
-    {
-      "type": "slab",
-      "at": [
-        103.8505,
-        1.373
-      ],
-      "rotDeg": 60,
-      "height": "mid",
-      "voidDeck": false
+      "gpr": 3.0
     }
   ]
 }
