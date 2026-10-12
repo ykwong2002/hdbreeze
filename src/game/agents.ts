@@ -41,7 +41,7 @@ export class Agents {
   ) {
     this.metresPerCellValue = metresPerCell;
     this.areaRings = [level.site].map((ring) => ring.map((p) => toCell(p[0], p[1])));
-    this.areaReach = 60 / metresPerCell; // the precinct walkways and the neighbours right around the plot
+    this.areaReach = 30 / metresPerCell; // the precinct walkways and the neighbours right beside the plot
     // residents only use walkways within reach of the build areas: that is the neighbourhood the player shapes
     this.graph = buildGraph(level, toCell, metresPerCell, (m) => this.nearArea(m));
     this.dynamicStart = this.graph.nodes.length;
