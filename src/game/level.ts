@@ -163,14 +163,24 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
             samplePts = ag.samplePoints([]); // all walkways near the areas, plus void-deck hangouts
             samplePtsDirty = false;
           }
-          let c = 0, f = 0, n = 0;
+          // residents' mood uses every walkway point; the score uses the stuffiest 30 % of them, because
+          // air that slows behind one wall speeds up between the next two and a plain mean hides both
+          let c = 0, n = 0;
+          const all: number[] = [];
           for (const [x, y] of samplePts) {
             const T = sim.readback.sample(x, y, sim.n);
             if (T === null) continue;
             const feels = feelsLikeC(T, sim.vis.tMax);
-            c += comfortFromFeels(feels); f += feels; n++;
+            c += comfortFromFeels(feels); all.push(feels); n++;
           }
-          if (n) { meanComfort = c / n; meanFeels = f / n; }
+          if (n) {
+            meanComfort = c / n;
+            all.sort((a, b) => b - a);
+            const k = Math.max(1, Math.round(all.length * 0.3));
+            let hot = 0;
+            for (let i = 0; i < k; i++) hot += all[i]!;
+            meanFeels = hot / k;
+          }
           lastFeels = meanFeels;
           const u = updateHotSpots(hotSpots, sim.readback, sim.n, sim.vis.tMax);
           spotsState = { cooled: hotSpots.filter((h) => h.cooled).length, total: hotSpots.length, ok: u.allCooled, margin: u.marginOk };

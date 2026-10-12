@@ -38,7 +38,7 @@ export function mountScore(root: HTMLElement, level: BakedLevel): { update(s: Sc
       blocksEl.innerHTML = `${ICON.blocks} ${s.placed} / ${s.toPlace} blocks placed`;
       blocksEl.classList.toggle("ok", s.allPlaced);
       void baseline;
-      feels.textContent = s.measuring ? "measuring…" : empty ? `goal ${pass}%+ · place a block to start` : `goal ${pass}%+ · feels like ${s.meanFeelsLike.toFixed(1)} °C`;
+      feels.textContent = s.measuring ? "measuring…" : empty ? `goal ${pass}%+ · place a block to start` : `goal ${pass}%+ · stuffiest corners ${s.meanFeelsLike.toFixed(1)} °C`;
       if (spotsEl) { spotsEl.innerHTML = `${ICON.flame} neighbour spots cooled ${s.spotsCooled} / ${s.spotsTotal}`; spotsEl.classList.toggle("ok", s.spotsTotal > 0 && s.spotsCooled === s.spotsTotal); }
       if (seasonsEl) seasonsEl.querySelectorAll<HTMLElement>("b").forEach((b) => { b.classList.toggle("ok", s.held.includes(b.dataset.s!)); b.classList.toggle("now", b.dataset.s === season); });
     },
