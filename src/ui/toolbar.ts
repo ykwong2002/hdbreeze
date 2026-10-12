@@ -16,7 +16,7 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
   el.className = "toolbar";
   el.hidden = true;
   el.innerHTML = `
-    <button class="tb rotate" title="Rotate">⟳<small>turn 45°</small></button>
+    ${window.matchMedia("(pointer: coarse)").matches ? "" : '<button class="tb rotate" title="Rotate">⟳<small>turn 45°</small></button>'}
     <button class="tb height" title="Height"><span class="tb-st">16</span><small>height</small></button>
     <button class="tb void" title="Void deck">⌂<small>void deck</small></button>
     <button class="tb remove" title="Remove">✕<small>remove</small></button>`;
@@ -24,7 +24,8 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
   let id: string | null = null;
   let move = false;
   const q = <T extends Element>(sel: string): T => el.querySelector(sel) as T;
-  q<HTMLButtonElement>(".rotate").onclick = () => { if (id) { const r = blocks.rotate(id); if (!r.ok) shake(); } };
+  const rot = el.querySelector<HTMLButtonElement>(".rotate");
+  if (rot) rot.onclick = () => { if (id) { const r = blocks.rotate(id); if (!r.ok) shake(); } };
   q<HTMLButtonElement>(".height").onclick = () => { if (id) blocks.cycleHeight(id); };
   q<HTMLButtonElement>(".void").onclick = () => { if (id) blocks.toggleVoid(id); };
   q<HTMLButtonElement>(".remove").onclick = () => { if (id) blocks.remove(id); hide(); onDone(); };

@@ -1,5 +1,6 @@
 import type { Baseline, ScoreState } from "../game/scoring";
 import type { BakedLevel } from "../game/level-types";
+import { ICON } from "./icons";
 
 /** Score card: breathability as the big number, then the checklist that clears the plot. */
 export function mountScore(root: HTMLElement, level: BakedLevel): { update(s: ScoreState, season: string, baseline?: Baseline): void; unmount(): void } {
@@ -11,7 +12,7 @@ export function mountScore(root: HTMLElement, level: BakedLevel): { update(s: Sc
     <div class="score-top"><span class="score-num">–</span><span class="score-label">breathable<br><small class="feels"></small></span></div>
     <div class="score-bar"><div class="score-fill"></div><div class="score-tick" style="left:${pass}%"></div><div class="score-hold"></div></div>
     <div class="score-foot">
-      <span class="score-row score-air">🌬️ ${pass}%+ breathable to clear</span>
+      <span class="score-row score-air">${ICON.wind} ${pass}%+ breathable to clear</span>
       <span class="score-row score-homes"></span>
       <span class="score-row score-blocks"></span>
       ${level.hotspots.length ? '<span class="score-row score-spots"></span>' : ""}
@@ -32,12 +33,13 @@ export function mountScore(root: HTMLElement, level: BakedLevel): { update(s: Sc
       fill.style.background = s.breathOk ? "var(--cool)" : "linear-gradient(90deg, var(--hot), #e8b84a)";
       hold.style.width = `${(s.hold * 100).toFixed(0)}%`;
       air.classList.toggle("ok", s.breathOk);
-      homes.textContent = `🏠 ${s.homes.toLocaleString()} / ${level.targets.homes.toLocaleString()} people housed`;
+      homes.innerHTML = `${ICON.home} ${s.homes.toLocaleString()} / ${level.targets.homes.toLocaleString()} people housed`;
       homes.classList.toggle("ok", s.homesOk);
-      blocksEl.textContent = `🧱 ${s.placed} / ${s.toPlace} blocks placed`;
+      blocksEl.innerHTML = `${ICON.blocks} ${s.placed} / ${s.toPlace} blocks placed`;
       blocksEl.classList.toggle("ok", s.allPlaced);
-      feels.textContent = s.measuring ? "measuring…" : empty ? `careless plan 0% · goal ${pass}% · empty plot 100%` : baseline ? `walkways ${s.meanFeelsLike.toFixed(1)} °C · careless ${baseline.careless.toFixed(1)} · empty ${baseline.empty.toFixed(1)} (model)` : `walkways ${s.meanFeelsLike.toFixed(1)} °C (model)`;
-      if (spotsEl) { spotsEl.textContent = `🔥 neighbour spots cooled ${s.spotsCooled} / ${s.spotsTotal}`; spotsEl.classList.toggle("ok", s.spotsTotal > 0 && s.spotsCooled === s.spotsTotal); }
+      void baseline;
+      feels.textContent = s.measuring ? "measuring…" : empty ? `goal ${pass}%+ · place a block to start` : `goal ${pass}%+ · feels like ${s.meanFeelsLike.toFixed(1)} °C`;
+      if (spotsEl) { spotsEl.innerHTML = `${ICON.flame} neighbour spots cooled ${s.spotsCooled} / ${s.spotsTotal}`; spotsEl.classList.toggle("ok", s.spotsTotal > 0 && s.spotsCooled === s.spotsTotal); }
       if (seasonsEl) seasonsEl.querySelectorAll<HTMLElement>("b").forEach((b) => { b.classList.toggle("ok", s.held.includes(b.dataset.s!)); b.classList.toggle("now", b.dataset.s === season); });
     },
     unmount: () => card.remove(),

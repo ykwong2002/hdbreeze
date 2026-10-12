@@ -19,7 +19,7 @@ void main() {
   // felt heat: sun-baked ground adds it (less under shade, on parks and water), still air keeps it,
   // moving air carries it off (wind chill)
   // sun-baked ground is the heat source; the shade apron of a building removes most of it
-  float source = ob.b * (1.0 - 0.8 * ob.g);
+  float source = ob.b * (1.0 - 0.15 * ob.g);
   // a breeze takes the edge off the sun but cannot erase it: cap the wind-chill benefit
   float kappa = uKappa + uKappaWind * min(length(v), uVCap);
   T += uQ * source * (1.0 - sigma) - kappa * T;

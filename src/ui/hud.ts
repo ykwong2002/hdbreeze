@@ -1,5 +1,6 @@
 import type { LevelSession } from "../game/level";
 import { sound } from "../sound";
+import { ICON } from "./icons";
 
 /** In-level chrome for M1: season toggle + back. Score and homes arrive in M3. */
 export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void, onHelp: () => void, onResidents: () => void, backLabel = "← Plots"): { update(): void; unmount(): void } {
@@ -22,19 +23,19 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
   };
   const residents = document.createElement("button");
   residents.className = "chip chip-residents";
-  residents.textContent = "🗣";
+  residents.innerHTML = ICON.speech;
   residents.setAttribute("aria-label", "Hear the residents");
   residents.onclick = onResidents;
   const help = document.createElement("button");
   help.className = "chip";
-  help.textContent = "?";
+  help.innerHTML = ICON.help;
   help.setAttribute("aria-label", "How to play");
   help.onclick = onHelp;
   const mute = document.createElement("button");
   mute.className = "chip";
   mute.setAttribute("aria-label", "Sound on/off");
-  mute.textContent = sound.enabled ? "🔊" : "🔇";
-  mute.onclick = () => { mute.textContent = sound.toggle() ? "🔊" : "🔇"; };
+  mute.innerHTML = sound.enabled ? ICON.sound : ICON.mute;
+  mute.onclick = () => { mute.innerHTML = sound.toggle() ? ICON.sound : ICON.mute; };
   const dev = document.createElement("span");
   dev.className = "devstats";
   bar.append(back, seasonBtn, residents, help, mute, dev);

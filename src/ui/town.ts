@@ -2,6 +2,7 @@ import type { Map as MlMap } from "maplibre-gl";
 import type { TownData } from "../game/level-types";
 import type { Progress } from "../game/progress";
 import { FIRST_LABEL_LAYER } from "../map/style";
+import { ICON } from "./icons";
 
 /** Town overview: plots drawn and numbered on the map, a card listing them with stars and locks. */
 export function mountTown(root: HTMLElement, map: MlMap, town: TownData, progress: Progress, onPick: (levelId: string) => void, onBack: () => void): { refresh(): void; unmount(): void } {
@@ -30,10 +31,10 @@ export function mountTown(root: HTMLElement, map: MlMap, town: TownData, progres
       <div class="tv-list">${town.plots.map((p) => {
         const r = progress.get(p.id);
         const unlocked = progress.unlocked(ids, p.n);
-        const stars = r ? "★".repeat(r.stars) + "☆".repeat(3 - r.stars) : unlocked ? "☆☆☆" : "🔒";
+        const stars = r ? "★".repeat(r.stars) + "☆".repeat(3 - r.stars) : unlocked ? "☆☆☆" : ICON.lock;
         return `<button class="tv-plot${unlocked ? "" : " locked"}" data-id="${p.id}" ${unlocked ? "" : "disabled"}>
           <span class="tv-n">${p.n}</span>
-          <span class="tv-body"><strong>${p.label}</strong><small>${(p.areaM2 / 10_000).toFixed(1)} ha · plot ratio ${p.gpr} · ${p.blocks} blocks${p.seasons.length > 1 ? " · both monsoons" : ""}${p.hotspots ? " · neighbour spot" : ""} · ${p.focus === "void" ? "void decks" : p.focus === "stepping" ? "height stepping" : "wind corridors"}</small></span>
+          <span class="tv-body"><strong>${p.label}</strong><small>${p.blocks} blocks · ${p.homes.toLocaleString()} people${p.seasons.length > 1 ? " · both monsoons" : ""}${p.hotspots ? " · neighbour spot" : ""} · ${p.focus === "void" ? "void decks" : p.focus === "stepping" ? "height stepping" : "wind corridors"}</small></span>
           <span class="tv-stars">${stars}</span></button>`;
       }).join("")}</div>
       <p class="tv-hint">${progress.townCleared(ids) ? "Town cleared. Replay any plot for more stars." : "Clear each plot to unlock the next."} Plot names are ours; everything is an estimate, for fun and education.</p>`;

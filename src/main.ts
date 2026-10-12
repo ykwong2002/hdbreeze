@@ -23,6 +23,8 @@ import { showAbout, showHowTo, showTitle, showWhy } from "./ui/title";
 import { mountOnboarding } from "./ui/onboarding";
 import { showResidents } from "./ui/residents";
 import { mountHotSpotMarkers } from "./ui/hotspot-markers";
+import { mountMapTouch } from "./ui/maptouch";
+import { ICON } from "./ui/icons";
 import { tierFor } from "./game/lines";
 
 const WHY_KEY = "hdbreeze.why.v6";
@@ -68,6 +70,9 @@ async function boot(): Promise<void> {
     return;
   }
   const params = new URLSearchParams(location.search);
+  const touch = mountMapTouch(hdb.map);
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  if (!coarse) document.querySelector(".brand-touch")?.setAttribute("hidden", "");
   const checking = params.has("check");
   const quiet = checking || isHarness();
   if (isHarness()) (window as unknown as { __hdb: unknown }).__hdb = hdb;
@@ -101,6 +106,7 @@ async function boot(): Promise<void> {
   let markers: ReturnType<typeof mountHotSpotMarkers> | null = null;
   let plotcard: ReturnType<typeof showPlotCard> | null = null;
   let townView: ReturnType<typeof mountTown> | null = null;
+  let tip: HTMLElement | null = null;
   let brainMod: typeof import("./lm/resident") | null = null;
   let currentTown: TownData | null = null;
 
@@ -111,6 +117,9 @@ async function boot(): Promise<void> {
     endcard = onboarding = markers = bubbles = score = toolbar = gestures = tray = hud = plotcard = null;
     session?.dispose();
     session = null;
+    touch.setRotator(null);
+    tip?.remove();
+    tip = null;
   };
   const showTowns = (): void => {
     teardownLevel();
@@ -152,6 +161,13 @@ async function boot(): Promise<void> {
       await brain.load(`${import.meta.env.BASE_URL}models/resident.bin`);
     });
     gestures = mountGestures(hdb.map, s, ui);
+    touch.setRotator({ selected: () => s.selectedBlock, setRotation: (id, deg) => { s.blocks.setRotation(id, deg); }, rotation: (id: string) => s.blocks.get(id)?.rotDeg ?? null } as Parameters<typeof touch.setRotator>[0]);
+    tip = document.createElement("div");
+    tip.className = "leveltip";
+    tip.innerHTML = coarse
+      ? `<span>${ICON.hand} drag a block to move it</span><span>${ICON.rotate} twist two fingers to turn it</span><span>${ICON.fingers2} two fingers drag the map</span><span>${ICON.fingers3} three-finger tap tilts</span>`
+      : `<span>${ICON.hand} drag a block to move it</span><span>${ICON.rotate} tap it, then turn 45°</span>`;
+    ui.append(tip);
     const g = gestures;
     tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; }, (t, ev) => g.beginTrayDrag(t, ev));
     toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));
@@ -197,7 +213,7 @@ async function boot(): Promise<void> {
       document.body.classList.add("in-intro");
       plotcard = showPlotCard(ui, s.level, () => { plotcard = null; document.body.classList.remove("in-intro"); if (!quiet) onboarding = mountOnboarding(ui, s); });
       const card = plotcard;
-      void runIntro(s, { status: (text, phase) => card.status(text, phase) }, params.has("recal")).catch((e) => { console.error("[hdbreeze] intro", e); card.status("", "done"); });
+      void runIntro(s, { status: (text, phase) => card.status(text, phase), wait: (label) => (isHarness() ? Promise.resolve() : card.wait(label)) }, params.has("recal")).catch((e) => { console.error("[hdbreeze] intro", e); card.status("", "done"); });
     } else if (!quiet) onboarding = mountOnboarding(ui, s);
 
     s.onCleared(() => {
