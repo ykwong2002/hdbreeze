@@ -106,7 +106,9 @@ export function createWindOverlay(id: string, opts: SimOptions, level: BakedLeve
       gl.bindVertexArray(vao);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       gl.bindVertexArray(null);
-      mapRef.triggerRepaint();
+      // idle: repaint at ~30 fps instead of every frame; the sim already skips half its steps
+      if (sim.idle) window.setTimeout(() => mapRef.triggerRepaint(), 26);
+      else mapRef.triggerRepaint();
     },
   };
   return self;

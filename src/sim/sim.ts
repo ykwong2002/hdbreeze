@@ -103,10 +103,22 @@ export class WindSim {
   }
 
   setPlacedBuildings(b: BuildingGeom[]): void {
+    this.wake();
     this.raster.setDynamicBuildings(b);
   }
 
+  /** Until this time the layout or wind just changed; after that the sim idles at half rate to spare the phone. */
+  private activeUntil = 0;
+  private static readonly ACTIVE_MS = 40_000;
+  wake(): void {
+    this.activeUntil = performance.now() + Sim.ACTIVE_MS;
+  }
+  get idle(): boolean {
+    return performance.now() > this.activeUntil;
+  }
+
   setWind(fromDeg: number, speed: number): void {
+    this.wake();
     const changed = fromDeg !== this.params.fromDeg || speed !== this.params.speed;
     this.params.fromDeg = fromDeg;
     this.params.speed = speed;
@@ -115,6 +127,7 @@ export class WindSim {
   }
 
   reset(): void {
+    this.wake();
     this.solver.reset();
     this.heat.reset();
     this.particles.reset();
@@ -137,11 +150,14 @@ export class WindSim {
     } else this.slowSince = 0;
   }
 
-  /** One rendered frame's worth of simulation. */
+  /** One rendered frame's worth of simulation. Idle: half the substeps on every other frame. */
   frame(): void {
     this.watchdog();
-    for (let s = 0; s < this.params.substeps; s++) this.solver.step(this.params);
-    const scale = this.solver.cellsPerSubstep * this.params.substeps;
+    const idle = this.idle;
+    if (idle && this.frames % 2 === 1) { this.frames++; return; }
+    const substeps = idle ? Math.max(1, Math.ceil(this.params.substeps / 2)) : this.params.substeps;
+    for (let s = 0; s < substeps; s++) this.solver.step(this.params);
+    const scale = this.solver.cellsPerSubstep * substeps;
     const W = windVector(this.params.fromDeg);
     this.heat.step(this.solver.velocity, scale, W, this.vis.q, this.vis.kappa, this.vis.kappaWind, this.vis.vCap);
     this.particles.step(this.solver.velocity, scale, this.vis.particleSpeed, this.vis.fade);
