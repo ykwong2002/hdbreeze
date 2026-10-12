@@ -34,8 +34,10 @@ export interface LevelSession {
   setHotSpots(defs: HotSpotDef[]): void;
   /** Optional tiny language model for fresh resident lines. */
   brain: ResidentBrain | null;
-  /** Instantaneous mean felt temperature over the sample walkways (null until the readback runs). */
+  /** Instantaneous felt temperature of the stuffiest 30 % of sample walkways (null until the readback runs). */
   readonly lastFeels: number | null;
+  /** Every sampled walkway temperature from the last readback, hottest first (dev / check page). */
+  readonly lastFeelsAll: number[];
   /** Pauses residents, speech and clearing while the intro measures baselines. */
   intro: boolean;
   blocks: Blocks;
@@ -137,6 +139,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let lastLine = "";
   let clearedFired = false;
   let lastFeels: number | null = null;
+  let lastFeelsAll: number[] = [];
   const flags = { intro: false };
   overlay.ready
     .then((sim) => {
@@ -176,6 +179,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
           if (n) {
             meanComfort = c / n;
             all.sort((a, b) => b - a);
+            lastFeelsAll = all;
             const k = Math.max(1, Math.round(all.length * 0.3));
             let hot = 0;
             for (let i = 0; i < k; i++) hot += all[i]!;
@@ -290,6 +294,9 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     },
     get lastFeels() {
       return lastFeels;
+    },
+    get lastFeelsAll() {
+      return lastFeelsAll;
     },
     get intro() {
       return flags.intro;

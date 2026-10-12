@@ -17,6 +17,16 @@ export async function runCheck(s: LevelSession, log: (line: string) => void): Pr
   const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
   const settle = async (frames = SETTLE): Promise<void> => { const t = sim.frameCount + frames; while (sim.frameCount < t) await sleep(100); };
   const measure = async (): Promise<number> => { let acc = 0, n = 0; for (let k = 0; k < 6; k++) { await sleep(150); const f = s.lastFeels; if (f !== null) { acc += f; n++; } } return n ? acc / n : NaN; };
+  // distribution of the sampled walkway temperatures: mean, hottest-30 % mean, and the share above two thresholds
+  const stats = (thr1: number, thr2: number): string => {
+    const a = s.lastFeelsAll;
+    if (!a.length) return "no samples";
+    const mean = a.reduce((x, y) => x + y, 0) / a.length;
+    const k = Math.max(1, Math.round(a.length * 0.3));
+    const hot = a.slice(0, k).reduce((x, y) => x + y, 0) / k;
+    const share = (t: number): number => (100 * a.filter((v) => v > t).length) / a.length;
+    return `n ${a.length} mean ${mean.toFixed(2)} hot30 ${hot.toFixed(2)} max ${a[0]!.toFixed(1)} >${thr1.toFixed(1)}: ${share(thr1).toFixed(0)}% >${thr2.toFixed(1)}: ${share(thr2).toFixed(0)}%`;
+  };
   const level = s.level;
   const pass = level.passPct ?? 60;
   s.intro = true;
@@ -27,12 +37,17 @@ export async function runCheck(s: LevelSession, log: (line: string) => void): Pr
     s.blocks.clearAll();
     await settle(SETTLE * 1.5);
     const empty = await measure();
+    const emptyMean = s.lastFeelsAll.length ? s.lastFeelsAll.reduce((x, y) => x + y, 0) / s.lastFeelsAll.length : empty;
+    const t1 = emptyMean + 1, t2 = emptyMean + 2;
+    log(`  empty    ${stats(t1, t2)}`);
     const nCare = fill(s, "careless");
     await settle();
     const careless = await measure();
+    log(`  careless ${stats(t1, t2)}`);
     const nAl = fill(s, "aligned");
     await settle();
     const aligned = await measure();
+    log(`  aligned  ${stats(t1, t2)}`);
     const homes = s.blocks.homes();
     const pct = breathPct(aligned, { empty, careless });
     const spots = s.hotSpots.map((h) => `${h.id} ${h.feels.toFixed(1)}/${h.targetC}`).join(" ");
