@@ -26,6 +26,9 @@ export interface VisParams {
 }
 
 /** One level's wind + felt-heat simulation, living in the map's WebGL2 context. */
+/** How long the sim runs at full rate after a layout or wind change. */
+const ACTIVE_MS = 40_000;
+
 export class WindSim {
   readonly n: number;
   readonly fmt: Fmt;
@@ -109,9 +112,8 @@ export class WindSim {
 
   /** Until this time the layout or wind just changed; after that the sim idles at half rate to spare the phone. */
   private activeUntil = 0;
-  private static readonly ACTIVE_MS = 40_000;
   wake(): void {
-    this.activeUntil = performance.now() + Sim.ACTIVE_MS;
+    this.activeUntil = performance.now() + ACTIVE_MS;
   }
   get idle(): boolean {
     return performance.now() > this.activeUntil;
