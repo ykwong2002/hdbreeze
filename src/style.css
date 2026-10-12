@@ -523,3 +523,9 @@ body.in-intro .leveltip { visibility: hidden; }
 .score-row .ico { color: var(--ink-soft); }
 .score-row.ok .ico { color: var(--cool); }
 .tv-stars .ico { width: 16px; height: 16px; color: var(--ink-soft); }
+.demo-caption { position: fixed; left: 50%; top: calc(14px + var(--safe-top)); z-index: 12; display: flex; align-items: center; gap: 12px; max-width: min(560px, calc(100% - 24px)); padding: 12px 18px; color: #fff; background: rgba(31, 28, 23, 0.86); border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); opacity: 0; transform: translate(-50%, -8px); transition: opacity 0.5s, transform 0.5s; pointer-events: none; }
+.demo-caption.on { opacity: 1; transform: translate(-50%, 0); }
+.demo-caption i { flex: 0 0 34px; height: 34px; display: grid; place-items: center; font: 800 18px/1 inherit; font-style: normal; color: #fff; background: var(--cool); border-radius: 50%; }
+.demo-caption strong { display: block; font-size: 18px; line-height: 1.15; }
+.demo-caption span { display: block; margin-top: 2px; font-size: 13px; opacity: 0.85; }
+body.in-intro .demo-caption { visibility: visible; }
