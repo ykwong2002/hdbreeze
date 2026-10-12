@@ -16,9 +16,9 @@ export function mountOnboarding(root: HTMLElement, session: LevelSession): { unm
   const hide = (): void => { el.hidden = true; };
   const advance = (): void => {
     window.clearTimeout(timer);
-    if (step === 0) show("Tap a highlighted area to place your first block.");
-    else if (step === 1) show("Tap the block, then try “void deck”: the breeze flows under it.");
-    else if (step === 2) { show("Blue is breezy, red is stuffy. Keep the walkways blue and place every block."); timer = window.setTimeout(() => { hide(); step = 3; done(); }, 7000); }
+    if (step === 0) show("Drag a block from the tray into a glowing area.");
+    else if (step === 1) show("Tap the block and try “void deck”: shade on top, breeze underneath.");
+    else if (step === 2) { show("Red walkways are sun-baked. Shade them, keep the air moving, place every block."); timer = window.setTimeout(() => { hide(); step = 3; done(); }, 7000); }
     else hide();
   };
   const done = (): void => { try { localStorage.setItem(KEY, "1"); } catch { /* ignore */ } };

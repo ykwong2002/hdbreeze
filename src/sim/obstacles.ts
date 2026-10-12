@@ -55,11 +55,11 @@ out vec4 o;
 void main() {
   ivec2 c = ivec2(gl_FragCoord.xy);
   float sum = 0.0, wsum = 0.0;
-  for (int k = -5; k <= 5; k++) {
-    float w = exp(-float(k * k) / 8.0);
+  for (int k = -7; k <= 7; k++) {
+    float w = exp(-float(k * k) / 14.0);
     ivec2 q = clamp(c + uDir * k, ivec2(0), uN - 1);
     vec4 s = texelFetch(uSrc, q, 0);
-    float v = (uPass == 0) ? (s.r > 0.5 ? min(s.g, 0.12) : 0.0) : s.r;
+    float v = (uPass == 0) ? (s.r > 0.1 ? min(s.g, 0.12) : 0.0) : s.r; // porous void decks shade too
     sum += w * v; wsum += w;
   }
   o = vec4(sum / wsum, 0.0, 0.0, 1.0);
@@ -71,7 +71,7 @@ out vec4 o;
 void main() {
   ivec2 c = ivec2(gl_FragCoord.xy);
   vec4 b = texelFetch(uBase, c, 0);
-  float shade = smoothstep(0.015, 0.07, texelFetch(uShade, c, 0).r);
+  float shade = smoothstep(0.012, 0.06, texelFetch(uShade, c, 0).r);
   float wake = texelFetch(uWake, c, 0).r;
   o = vec4(b.r, shade, b.b, wake);
 }`;
@@ -131,7 +131,7 @@ export class ObstacleRaster {
   /** Rasterises the district and score-zone rings (cells) into the mask texture; called once per level. */
   setMask(district: [number, number][], zone: [number, number][]): void {
     const gl = this.gl;
-    this.maskMesh = this.mesh([{ ring: district, a: 0.35, b: 0 }, { ring: zone, a: 1.0, b: 0 }], 1);
+    this.maskMesh = this.mesh([{ ring: district, a: 0.18, b: 0 }, { ring: zone, a: 1.0, b: 0 }], 1);
     this.mask.bind();
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);

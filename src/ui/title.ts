@@ -24,9 +24,9 @@ export function showHowTo(root: HTMLElement): { unmount(): void } {
     <div class="howto-box">
       <h2>How to play</h2>
       <ol>
-        <li><span class="howto-ico">👆</span><span><strong>Tap a glowing area</strong> to drop a block. Place them all.</span></li>
-        <li><span class="howto-ico">🧱</span><span><strong>Tap a block</strong> to turn it, raise it or open its void deck.</span></li>
-        <li><span class="howto-ico">🌬️</span><span><strong>Blue is breezy, red is stuffy.</strong> Keep the score above the line.</span></li>
+        <li><span class="howto-ico">👆</span><span><strong>Drag a block</strong> from the tray into a glowing area. Place them all.</span></li>
+        <li><span class="howto-ico">🤏</span><span><strong>Twist two fingers</strong> to turn a block; tap it for height and void deck.</span></li>
+        <li><span class="howto-ico">🌬️</span><span><strong>Red walkways are sun-baked.</strong> Shade them with blocks, but keep the breeze flowing.</span></li>
       </ol>
       <button class="btn btn-primary howto-ok">Got it</button>
     </div>`;

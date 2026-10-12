@@ -149,6 +149,34 @@ export class Blocks {
     return { ok: true, block: b };
   }
 
+  /** Sets an absolute rotation (degrees) if the block still fits and does not overlap. */
+  setRotation(id: string, deg: number): boolean {
+    const b = this.get(id);
+    const area = b && this.area(b.areaId);
+    if (!b || !area) return false;
+    const rot = ((Math.round(deg / 5) * 5) % 180 + 180) % 180;
+    if (rot === b.rotDeg) return true;
+    const r = this.fits(area, { ...b, rotDeg: rot }, id);
+    if ("ok" in r) return false;
+    b.rotDeg = rot;
+    b.center = r.center;
+    this.emit();
+    return true;
+  }
+
+  /** Where a block of this type would land if dropped at `at`, and whether it is allowed. */
+  preview(type: TypologyId, at: LonLat, rotDeg: number, ignoreId?: string): { center: LonLat; rotDeg: number; ok: boolean } {
+    const area = this.areaAt(at);
+    if (!area) return { center: at, rotDeg, ok: false };
+    for (const d of [0, 90, 45, 135]) {
+      const rot = (rotDeg + d) % 180;
+      const r = this.fits(area, { type, center: at, rotDeg: rot, height: "mid", voidDeck: false }, ignoreId);
+      if (!("ok" in r)) return { center: r.center, rotDeg: rot, ok: true };
+      if (!r.ok && r.reason === "overlap") return { center: at, rotDeg: rot, ok: false };
+    }
+    return { center: at, rotDeg, ok: false };
+  }
+
   cycleHeight(id: string): Block | undefined {
     const b = this.get(id);
     if (!b || !typology(b.type).residential) return b;
