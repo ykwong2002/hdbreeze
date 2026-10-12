@@ -1,0 +1,94 @@
+{
+  "id": "angmokio",
+  "name": "Ang Mo Kio",
+  "subzone": "CHENG SAN",
+  "planningArea": "ANG MO KIO",
+  "tagline": "A mature town. Make it work in both monsoons.",
+  "brief": "Place all 6 blocks in the highlighted areas. The walkways must stay breezy in both monsoons.",
+  "camera": {
+    "zoom": 15.4,
+    "pitch": 55,
+    "bearing": 0
+  },
+  "wind": {
+    "seasons": [
+      {
+        "id": "ne",
+        "label": "NE monsoon (Dec–Mar)",
+        "fromDeg": 30,
+        "speed": 1.0
+      },
+      {
+        "id": "sw",
+        "label": "SW monsoon (Jun–Sep)",
+        "fromDeg": 160,
+        "speed": 0.8
+      }
+    ],
+    "required": [
+      "ne",
+      "sw"
+    ]
+  },
+  "areas": [
+    {
+      "id": "a",
+      "label": "Cheng San, north",
+      "at": [
+        103.85722,
+        1.37556
+      ]
+    },
+    {
+      "id": "b",
+      "label": "Reserve site, south",
+      "at": [
+        103.85029,
+        1.37072
+      ]
+    },
+    {
+      "id": "c",
+      "label": "Cheng San, west",
+      "at": [
+        103.84842,
+        1.37402
+      ]
+    }
+  ],
+  "tray": [
+    {
+      "type": "slab",
+      "count": 2
+    },
+    {
+      "type": "point",
+      "count": 3
+    },
+    {
+      "type": "courtyard",
+      "count": 1
+    }
+  ],
+  "heights": {
+    "low": 8,
+    "mid": 16,
+    "high": 30
+  },
+  "hotspots": [
+    [
+      103.853,
+      1.3735
+    ]
+  ],
+  "targets": {
+    "satisfaction": 80,
+    "holdSeconds": 4
+  },
+  "calibration": {
+    "ne_empty": 83.4,
+    "ne_naive": 76.8,
+    "ne_reference": 84.6,
+    "method": "?calib=1 harness 2026-10-12, spread layouts, 420 settle frames; threshold = reference minus margin"
+  }
+}

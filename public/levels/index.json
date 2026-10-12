@@ -8,5 +8,25 @@
       103.899717,
       1.408436
     ]
+  },
+  {
+    "id": "tengah",
+    "name": "Tengah",
+    "subzone": "BRICKLAND",
+    "tagline": "Singapore's newest town, planned around wind from day one.",
+    "center": [
+      103.742073,
+      1.368473
+    ]
+  },
+  {
+    "id": "angmokio",
+    "name": "Ang Mo Kio",
+    "subzone": "CHENG SAN",
+    "tagline": "A mature town. Make it work in both monsoons.",
+    "center": [
+      103.85469,
+      1.37274
+    ]
   }
 ]

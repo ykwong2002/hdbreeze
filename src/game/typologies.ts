@@ -1,12 +1,22 @@
 /** The player's palette: a fixed set of HDB typologies, footprints in local metres centred at the origin. */
 export type TypologyId = "slab" | "point" | "l" | "courtyard" | "mscp" | "pavilion";
 
+/** Axis-aligned rectangle in local metres, for overlap tests. */
+export interface Rect {
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+}
+
 export interface Typology {
   id: TypologyId;
   label: string;
   short: string;
   /** Outline rings in local metres (x east, y north), one per part. */
   parts: [number, number][][];
+  /** Rectangle decomposition of the footprint (same frame as parts). */
+  rects: Rect[];
   unitsPerFloor: number;
   minStoreys: number;
   maxStoreys: number;
@@ -45,16 +55,17 @@ const L: [number, number][] = [
 ];
 
 export const TYPOLOGIES: Typology[] = [
-  define({ id: "slab", label: "Slab block", short: "Slab", parts: [rect(0, 0, 70, 14)], unitsPerFloor: 8, minStoreys: 10, maxStoreys: 16, residential: true, sigma: 1, storeyM: 3 }),
-  define({ id: "point", label: "Point block", short: "Point", parts: [PLUS], unitsPerFloor: 6, minStoreys: 20, maxStoreys: 50, residential: true, sigma: 1, storeyM: 3 }),
-  define({ id: "l", label: "L / staggered block", short: "L-block", parts: [L], unitsPerFloor: 6, minStoreys: 12, maxStoreys: 30, residential: true, sigma: 1, storeyM: 3 }),
+  define({ id: "slab", label: "Slab block", short: "Slab", parts: [rect(0, 0, 54, 13)], rects: [{ cx: 0, cy: 0, w: 54, h: 13 }], unitsPerFloor: 7, minStoreys: 10, maxStoreys: 16, residential: true, sigma: 1, storeyM: 3 }),
+  define({ id: "point", label: "Point block", short: "Point", parts: [PLUS], rects: [{ cx: 0, cy: 0, w: 12, h: 26 }, { cx: 0, cy: 0, w: 26, h: 12 }], unitsPerFloor: 6, minStoreys: 20, maxStoreys: 50, residential: true, sigma: 1, storeyM: 3 }),
+  define({ id: "l", label: "L / staggered block", short: "L-block", parts: [L], rects: [{ cx: 7, cy: -6, w: 40, h: 14 }, { cx: -6, cy: 7, w: 14, h: 40 }], unitsPerFloor: 6, minStoreys: 12, maxStoreys: 30, residential: true, sigma: 1, storeyM: 3 }),
   define({
     id: "courtyard", label: "Courtyard cluster", short: "Courtyard",
     parts: [rect(0, 27, 40, 14), rect(0, -27, 40, 14), rect(27, 0, 14, 40), rect(-27, 0, 14, 40)],
+    rects: [{ cx: 0, cy: 27, w: 40, h: 14 }, { cx: 0, cy: -27, w: 40, h: 14 }, { cx: 27, cy: 0, w: 14, h: 40 }, { cx: -27, cy: 0, w: 14, h: 40 }],
     unitsPerFloor: 16, minStoreys: 10, maxStoreys: 20, residential: true, sigma: 1, storeyM: 3,
   }),
-  define({ id: "mscp", label: "Multi-storey carpark", short: "Carpark", parts: [rect(0, 0, 60, 35)], unitsPerFloor: 0, minStoreys: 5, maxStoreys: 5, residential: false, sigma: 1, storeyM: 2.8 }),
-  define({ id: "pavilion", label: "Precinct pavilion", short: "Pavilion", parts: [rect(0, 0, 30, 30)], unitsPerFloor: 0, minStoreys: 1, maxStoreys: 1, residential: false, sigma: 0.3, storeyM: 4.5 }),
+  define({ id: "mscp", label: "Multi-storey carpark", short: "Carpark", parts: [rect(0, 0, 60, 35)], rects: [{ cx: 0, cy: 0, w: 60, h: 35 }], unitsPerFloor: 0, minStoreys: 5, maxStoreys: 5, residential: false, sigma: 1, storeyM: 2.8 }),
+  define({ id: "pavilion", label: "Precinct pavilion", short: "Pavilion", parts: [rect(0, 0, 30, 30)], rects: [{ cx: 0, cy: 0, w: 30, h: 30 }], unitsPerFloor: 0, minStoreys: 1, maxStoreys: 1, residential: false, sigma: 0.3, storeyM: 4.5 }),
 ];
 
 export function typology(id: TypologyId): Typology {

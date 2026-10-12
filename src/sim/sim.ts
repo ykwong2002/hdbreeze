@@ -33,12 +33,20 @@ export class WindSim {
   readonly raster: ObstacleRaster;
   readonly readback: HeatReadback;
   readonly params: WindParams;
-  readonly vis: VisParams = { q: 0.1, kappa: 0.03, kappaWind: 0.1, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
+  readonly vis: VisParams = { q: 0.09, kappa: 0.03, kappaWind: 0.2, tMax: 2.4, particleSpeed: 0.45, fade: 0.965 };
   readonly bbox: [number, number, number, number];
   readonly metresPerCell: number;
   private probe: StatsProbe;
   private frames = 0;
+  /** Simulation frames run so far (for harnesses that must wait for the field to settle). */
+  get frameCount(): number {
+    return this.frames;
+  }
   lastStats: Stats | null = null;
+  /** Set by the watchdog when frames stay slow: fewer substeps, calmer particles. */
+  degraded = false;
+  private slowSince = 0;
+  private lastFrameAt = 0;
 
   constructor(
     readonly gl: GL,
@@ -55,13 +63,13 @@ export class WindSim {
     this.raster.kWakeCells = 2.5 / this.metresPerCell;
     const obs = this.raster.texture;
     this.params = opts.solver === "lbm"
-      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 12, jacobi: 20, vorticity: 0, tau: 0.6, substeps: 4 }
-      : { fromDeg: 30, speed: 1, lambda: 0.01, kDrag: 12, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
+      ? { fromDeg: 30, speed: 1, lambda: 0.006, kDrag: 0.07, jacobi: 20, vorticity: 0, tau: 0.66, substeps: 4 }
+      : { fromDeg: 30, speed: 1, lambda: 0.01, kDrag: 0.5, jacobi: 20, vorticity: 0, tau: 0.56, substeps: 2 };
     this.solver = opts.solver === "lbm" ? new LatticeBoltzmann(gl, this.fmt, obs, this.n) : new StableFluids(gl, this.fmt, obs, this.n);
     this.heat = new HeatField(gl, this.fmt, obs, this.n);
     this.particles = new Particles(gl, this.fmt, obs, opts.trailSize ?? 512, this.n);
     this.probe = new StatsProbe(gl);
-    this.readback = new HeatReadback(gl, 64);
+    this.readback = new HeatReadback(gl, Math.max(64, this.n / 2));
   }
 
   /** sim cell coordinates -> lon/lat. */
@@ -103,8 +111,26 @@ export class WindSim {
     this.particles.reset();
   }
 
+  /** Drops to a lighter mode after ~2 s of frames slower than 33 ms. */
+  private watchdog(): void {
+    const now = performance.now();
+    const dt = this.lastFrameAt ? now - this.lastFrameAt : 16;
+    this.lastFrameAt = now;
+    if (this.degraded) return;
+    if (dt > 33) {
+      if (!this.slowSince) this.slowSince = now;
+      else if (now - this.slowSince > 2000) {
+        this.degraded = true;
+        this.params.substeps = Math.max(1, Math.ceil(this.params.substeps / 2));
+        this.vis.fade = Math.min(this.vis.fade, 0.95);
+        console.info("[hdbreeze] slow frames: sim degraded");
+      }
+    } else this.slowSince = 0;
+  }
+
   /** One rendered frame's worth of simulation. */
   frame(): void {
+    this.watchdog();
     for (let s = 0; s < this.params.substeps; s++) this.solver.step(this.params);
     const scale = this.solver.cellsPerSubstep * this.params.substeps;
     const W = windVector(this.params.fromDeg);

@@ -1,16 +1,21 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./style.css";
-import { hasWebGL2, isDevMode } from "./capability";
+import { hasWebGL2, isDevMode, isHarness } from "./capability";
 import { createMap, SINGAPORE_VIEW, type HdbMap } from "./map/map";
 import { startLevel, type LevelSession } from "./game/level";
 import type { LevelIndexEntry } from "./game/level-types";
 import type { SolverKind } from "./sim/solver";
 import { mountHud } from "./ui/hud";
 import { mountSelect } from "./ui/select";
-import { mountSheet, type Sheet } from "./ui/sheet";
+import { mountTray, type Tray } from "./ui/tray";
+import { mountToolbar, type Toolbar } from "./ui/toolbar";
 import { mountScore } from "./ui/score";
 import { mountBubbles, type Bubbles } from "./ui/bubbles";
 import { showEndCard } from "./ui/endcard";
+import { showHowTo, showTitle } from "./ui/title";
+import { mountOnboarding } from "./ui/onboarding";
+import { showResidents } from "./ui/residents";
+import { tierFor } from "./game/lines";
 
 function showUnsupported(): void {
   document.getElementById("unsupported")?.removeAttribute("hidden");
@@ -41,8 +46,8 @@ async function boot(): Promise<void> {
     return;
   }
 
+  if (isHarness()) (window as unknown as { __hdb: unknown }).__hdb = hdb;
   if (isDevMode()) {
-    (window as unknown as { __hdb: unknown }).__hdb = hdb;
     const status = document.getElementById("status");
     if (status) {
       status.hidden = false;
@@ -56,21 +61,29 @@ async function boot(): Promise<void> {
   const levels = (await (await fetch(`${import.meta.env.BASE_URL}levels/index.json`)).json()) as LevelIndexEntry[];
   let session: LevelSession | null = null;
   let hud: ReturnType<typeof mountHud> | null = null;
-  let sheet: Sheet | null = null;
+  let tray: Tray | null = null;
+  let toolbar: Toolbar | null = null;
   let score: ReturnType<typeof mountScore> | null = null;
   let bubbles: Bubbles | null = null;
   let endcard: { unmount(): void } | null = null;
+  let onboarding: { unmount(): void } | null = null;
+  let brainMod: typeof import("./lm/resident") | null = null;
 
   const leave = (): void => {
-    document.body.classList.remove("sheet-open", "in-level");
+    document.body.classList.remove("in-level");
+    session?.brain?.dispose();
     endcard?.unmount();
     endcard = null;
+    onboarding?.unmount();
+    onboarding = null;
     bubbles?.unmount();
     bubbles = null;
     score?.unmount();
     score = null;
-    sheet?.unmount();
-    sheet = null;
+    toolbar?.unmount();
+    toolbar = null;
+    tray?.unmount();
+    tray = null;
     hud?.unmount();
     hud = null;
     session?.dispose();
@@ -82,42 +95,93 @@ async function boot(): Promise<void> {
   const play = async (id: string): Promise<void> => {
     select.hide();
     session = await startLevel(hdb, id, solverKind());
-    hud = mountHud(ui, session, leave);
-    const s = session;
-    sheet = mountSheet(ui, s.placement, () => s.deselect());
-    s.onPlotSelected((pid) => {
-      if (pid) sheet?.open(pid);
-      else sheet?.close();
-      document.querySelector(".hud")?.classList.toggle("with-sheet", !!pid);
-      document.body.classList.toggle("sheet-open", !!pid);
+    hud = mountHud(ui, session, leave, () => showHowTo(ui), () => {
+      const sess = session;
+      if (!sess?.brain) return;
+      const comfort = (): number => { const st = sess.scoring.state; return 1 - Math.min(1, Math.max(0, (st.meanFeelsLike - 27.5) / 7)) ** 2 * (3 - 2 * Math.min(1, Math.max(0, (st.meanFeelsLike - 27.5) / 7))); };
+      showResidents(ui, sess.brain, () => tierFor(comfort()), () => sess.scoring.state.meanFeelsLike);
     });
-    s.placement.onChange(() => sheet?.refresh());
+    // the residents' language model loads after the level is up; 1.5 MB, worker thread
+    void session.overlay.ready.then(async () => {
+      brainMod ??= await import("./lm/resident");
+      const sess = session;
+      if (!sess) return;
+      const brain = new brainMod.ResidentBrain();
+      sess.brain = brain;
+      await brain.load(`${import.meta.env.BASE_URL}models/resident.bin`);
+    });
+    const s = session;
+    tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; });
+    toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));
+    s.moveMode = () => toolbar?.moveMode() ?? false;
+    s.onSelection((id) => {
+      if (id) toolbar?.show(id);
+      else toolbar?.hide();
+    });
+    s.onReject(() => tray?.shake());
+    onboarding = mountOnboarding(ui, s);
+    s.onHint((text) => {
+      const h = document.createElement("div");
+      h.className = "hint";
+      h.textContent = text;
+      ui.append(h);
+      window.setTimeout(() => h.remove(), 6000);
+    });
+    if (new URLSearchParams(location.search).has("calib")) {
+      const { runCalibration } = await import("./dev/calib");
+      const box = document.createElement("pre");
+      box.className = "calib";
+      box.textContent = "calibrating…\n";
+      ui.append(box);
+      await s.overlay.ready;
+      await new Promise((r) => setTimeout(r, 3000));
+      void runCalibration(s, (line) => { box.textContent += line + "\n"; console.log("[calib]", line); });
+    }
     document.body.classList.add("in-level");
     score = mountScore(ui, s.level.targets.satisfaction, s.level.targets.homes);
     s.onScore((st) => score?.update(st));
     bubbles = mountBubbles(ui, hdb.map);
     s.onSpeech((sp) => bubbles?.say(sp.lonLat(), sp.text, sp.tier, sp.lonLat));
     s.onCleared(() => {
-      sheet?.close();
-      s.deselect();
+      s.select(null);
       endcard = showEndCard(ui, {
         levelName: s.level.name,
         state: s.scoring.state,
         stars: s.scoring.stars(),
+        threshold: s.level.targets.satisfaction,
+        targetHomes: s.level.targets.homes,
+        marginScore: s.scoring.marginStarScore(),
+        live: () => ({ state: s.scoring.state, stars: s.scoring.stars() }),
         onContinue: () => { endcard = null; },
         onTowns: () => { endcard = null; leave(); },
+        image: async () => {
+          const { captureShareImage } = await import("./share/capture");
+          return captureShareImage(hdb.map, { levelName: s.level.name, state: s.scoring.state, stars: s.scoring.stars() });
+        },
       });
     });
     (window as unknown as { __session: unknown }).__session = session;
+    if (isHarness()) {
+      // harness hook: auto-fill the tray in a given style (see src/dev/calib.ts)
+      (window as unknown as { __fill: unknown }).__fill = async (style: "naive" | "reference") => {
+        const { fill } = await import("./dev/calib");
+        if (session) fill(session, style);
+      };
+    }
   };
   const select = mountSelect(ui, levels, (id) => void play(id));
 
   const deep = new URLSearchParams(location.search).get("level");
-  const start = (): void => {
-    if (deep && levels.some((l) => l.id === deep)) void play(deep);
-  };
-  if (hdb.map.loaded()) start();
-  else hdb.map.once("load", start);
+  if (deep && levels.some((l) => l.id === deep)) {
+    select.hide();
+    const start = (): void => void play(deep);
+    if (hdb.map.loaded()) start();
+    else hdb.map.once("load", start);
+  } else {
+    // title first, before tiles arrive; the picker shows when the player taps Start
+    select.hide();
+    showTitle(ui, () => select.show());
+  }
 }
 
 void boot();

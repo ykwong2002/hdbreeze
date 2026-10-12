@@ -33,7 +33,7 @@ interface AuthoredLevel {
 }
 
 /** Residents per flat and units per floor must match src/game/typologies.ts. */
-const UNITS_PER_FLOOR: Record<string, number> = { slab: 8, point: 6, l: 6, courtyard: 16, mscp: 0, pavilion: 0 };
+const UNITS_PER_FLOOR: Record<string, number> = { slab: 7, point: 6, l: 6, courtyard: 16, mscp: 0, pavilion: 0 };
 const RESIDENTS_PER_FLAT = 3.2;
 const SCORE_ZONE_M = 150;
 const SIM_PAD_M = 100;
@@ -122,7 +122,11 @@ async function main(): Promise<void> {
 
   // Score zone: convex hull of the areas, pushed out 150 m
   const zone = expandRing(convexHull(areas.flatMap((x) => x.polygon)), SCORE_ZONE_M);
-  const paths = buildPaths(ways, bbox, zone);
+  // Footways from the map plus walkways through and around the build areas (parcels are empty, so the
+  // map has none there): residents must walk where the player builds for the blocks to matter.
+  const synth = synthWays(areas.map((x) => x.polygon), a.hotspots);
+  const paths = buildPaths([...ways, ...synth], bbox, zone);
+  console.log(`paths: ${paths.nodes.length} nodes (${synth.length} synthetic walkways through the areas)`);
 
   // Homes target: 85% of the tray at mid height unless authored
   const trayHomes = a.tray.reduce((s, t) => s + t.count * (UNITS_PER_FLOOR[t.type] ?? 0) * a.heights.mid * RESIDENTS_PER_FLAT, 0);
@@ -185,6 +189,27 @@ function buildPaths(ways: Pt[][], bbox: Bbox, zone: Ring): BakedLevel["paths"] {
     }
   }
   return { nodes, edges };
+}
+
+/** Walkways for sparse zones: a loop just inside each area's outline, plus links between consecutive area centroids and hotspots. */
+function synthWays(areaRings: Ring[], hotspots: Pt[]): Pt[][] {
+  const ways: Pt[][] = [];
+  const centres: Pt[] = [];
+  for (const ring of areaRings) {
+    const c = centroid(ring.slice(0, -1));
+    centres.push(c);
+    const loop: Pt[] = ring.map(([x, y]) => [c[0] + (x - c[0]) * 0.85, c[1] + (y - c[1]) * 0.85] as Pt);
+    ways.push(loop);
+    const n = Math.floor(ring.length / 2);
+    ways.push([loop[0]!, c, loop[n]!]);
+  }
+  for (let i = 1; i < centres.length; i++) ways.push([centres[i - 1]!, centres[i]!]);
+  for (const h of hotspots) {
+    let best = centres[0]!, bd = Infinity;
+    for (const c of centres) { const d = Math.hypot(c[0] - h[0], c[1] - h[1]); if (d < bd) { bd = d; best = c; } }
+    ways.push([best, h]);
+  }
+  return ways;
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

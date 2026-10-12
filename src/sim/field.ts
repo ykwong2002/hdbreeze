@@ -18,7 +18,7 @@ void main() {
   float T = texture(uHeat, p).x;
   // felt heat: sun-baked ground adds it (less under shade, on parks and water), still air keeps it,
   // moving air carries it off (wind chill)
-  float source = ob.b * (1.0 - 0.8 * ob.g);
+  float source = ob.b * (1.0 - 0.35 * ob.g);
   float kappa = uKappa + uKappaWind * length(v);
   T += uQ * source * (1.0 - sigma) - kappa * T;
   o = vec4(max(T, 0.0), 0.0, 0.0, 0.0);

@@ -55,6 +55,23 @@ npm run bake -- punggol
 
 The bake downloads the four data.gov.sg datasets into `data/raw/` on first run (cached, gitignored), joins HDB footprints to storeys, reads non-HDB buildings and footpaths from `data/raw/singapore.pmtiles` (the same Protomaps extract as the basemap fallback; copy it there), tags ground kinds from the Master Plan land-use layer, resolves each build-area point to its Master Plan parcel, outlines the subzone, derives the score zone around the areas, and writes `public/levels/<id>.json` plus `public/levels/index.json`. Spike results and data notes: [docs/spikes.md](docs/spikes.md).
 
+## Calibrate a level
+
+Open `?dev=1&calib=1&level=<id>` on the built site (or `npm run preview`). The harness fills the level three ways per required season, empty, naive (every block high, slabs across the wind, no void decks) and reference (slabs along the wind, void decks on), waits for the score to settle and prints a table with a suggested threshold. Put the chosen threshold in `levels/<id>.json` under `targets.satisfaction` and re-bake.
+
+## The residents' language model
+
+The speech bubbles mix scripted lines with lines generated on the phone by a tiny character-level transformer (nanoGPT-style, 4 layers, ~0.9M parameters) trained only on Singlish complaints about being too hot, too cold or just nice. It runs in a Web Worker with a dependency-free TypeScript forward pass (`src/lm/gpt.ts`); the weights are `public/models/resident.bin` (fp16, ~1.5 MB, loaded after the level starts). Training lives in `tools/lm/`:
+
+```sh
+python3 tools/lm/corpus.py          # handwritten lines + Singlish template grammar -> corpus.txt
+python3 tools/lm/train.py 4000      # PyTorch, a few minutes on an Apple GPU or CPU
+python3 tools/lm/sample.py 5        # eyeball samples per tier
+python3 tools/lm/export.py          # -> public/models/resident.bin
+```
+
+No third-party Singlish corpus with a usable licence was found, so the training text is entirely our own (the `lines.ts` set plus the grammar in `corpus.py`). The card in the game says so.
+
 ## Deploy
 
 Static site on Cloudflare Workers (static assets, no Worker code): in the Cloudflare dashboard create a Worker from the GitHub repo with build command `npm run build` and deploy command `npx wrangler deploy`; `wrangler.jsonc` points it at `dist/`. Add `VITE_PMTILES_URL` as a build variable if you host the basemap fallback. `npm run deploy` does the same from a local build.

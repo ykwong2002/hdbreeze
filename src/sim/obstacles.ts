@@ -9,7 +9,7 @@ import { drawQuad, FBO, GLSL_HEADER, Program, QUAD_VS, type Fmt, type GL } from 
 export interface BuildingGeom {
   ring: [number, number][];
   heightM: number;
-  /** 1 solid, ~0.15 under a void deck. */
+  /** 1 solid, ~0.15 under a void deck (drag per substep is kDrag * sigma, so keep kDrag small). */
   sigma: number;
 }
 export interface GroundGeom {
@@ -59,7 +59,7 @@ void main() {
     float w = exp(-float(k * k) / 8.0);
     ivec2 q = clamp(c + uDir * k, ivec2(0), uN - 1);
     vec4 s = texelFetch(uSrc, q, 0);
-    float v = (uPass == 0) ? (s.r > 0.5 ? s.g : 0.0) : s.r;
+    float v = (uPass == 0) ? (s.r > 0.5 ? min(s.g, 0.12) : 0.0) : s.r;
     sum += w * v; wsum += w;
   }
   o = vec4(sum / wsum, 0.0, 0.0, 1.0);
@@ -71,7 +71,7 @@ out vec4 o;
 void main() {
   ivec2 c = ivec2(gl_FragCoord.xy);
   vec4 b = texelFetch(uBase, c, 0);
-  float shade = smoothstep(0.02, 0.16, texelFetch(uShade, c, 0).r);
+  float shade = smoothstep(0.015, 0.07, texelFetch(uShade, c, 0).r);
   float wake = texelFetch(uWake, c, 0).r;
   o = vec4(b.r, shade, b.b, wake);
 }`;

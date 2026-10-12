@@ -12,6 +12,13 @@ export function hasWebGL2(): boolean {
   }
 }
 
+/** Shows the dev chips (tiles, solver stats). */
 export function isDevMode(): boolean {
   return new URLSearchParams(location.search).has("dev");
+}
+
+/** Exposes window handles for the scripted harness without showing dev chrome. */
+export function isHarness(): boolean {
+  const q = new URLSearchParams(location.search);
+  return q.has("harness") || q.has("dev") || q.has("calib");
 }
