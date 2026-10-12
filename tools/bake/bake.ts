@@ -14,7 +14,7 @@ import { hdbHeight, hdbInBbox, loadHdb } from "./hdb.ts";
 import { groundKind, loadLanduse, parcelAt } from "./landuse.ts";
 import { dropOverlapping } from "./osm.ts";
 import { loadTiles } from "./tiles.ts";
-import type { BakedBuilding, BakedLevel, HeightStep, HotSpotDef, LevelIndexEntry, PlotSummary, ReferenceBlock, TownData, TrayItem } from "../../src/game/level-types.ts";
+import type { BakedBuilding, BakedLevel, HeightStep, HotSpotDef, LevelIndexEntry, PlotSummary, ReferenceBlock, Technique, TownData, TrayItem } from "../../src/game/level-types.ts";
 
 interface AuthoredPlot {
   id: string;
@@ -30,6 +30,7 @@ interface AuthoredPlot {
   reference?: ReferenceBlock[];
   passPct?: number;
   brief?: string;
+  focus?: Technique;
 }
 interface AuthoredTown {
   id: string;
@@ -150,7 +151,7 @@ async function main(): Promise<void> {
     const zoom = Math.round((16.9 - Math.log2(Math.max(120, plotSizeM) / 200)) * 10) / 10;
     const baked: BakedLevel = {
       id: levelId, name: a.name, town: id, plotIndex: i + 1, plotCount: a.plots.length, plotLabel: pl.label, gpr, areaM2, flatsAllowed,
-      passPct: pl.passPct ?? 60, starPct: 75,
+      passPct: pl.passPct ?? 60, starPct: 75, focus: pl.focus ?? "corridors",
       subzone: pl.label, tagline: a.tagline,
       brief: pl.brief ?? `Plot ${i + 1} of ${a.plots.length}. House ${homes.toLocaleString()} people and keep the precinct breathable.`,
       camera: { zoom, pitch: 55, bearing: 0 }, grid,
@@ -168,7 +169,7 @@ async function main(): Promise<void> {
     const text = JSON.stringify(baked);
     writeFileSync(join("public/levels", `${levelId}.json`), text);
     console.log(`  wrote ${levelId}.json: ${(text.length / 1024).toFixed(0)} KB, ${buildings.length} buildings, ${paths.nodes.length} path nodes`);
-    summaries.push({ id: levelId, n: i + 1, label: pl.label, polygon: plot, center: centroid(plot.slice(0, -1)).map(r6) as Pt, areaM2, gpr, flatsAllowed, homes, blocks: blocksN, seasons: required, hotspots: hotspots.length });
+    summaries.push({ id: levelId, n: i + 1, label: pl.label, polygon: plot, center: centroid(plot.slice(0, -1)).map(r6) as Pt, areaM2, gpr, flatsAllowed, homes, blocks: blocksN, seasons: required, hotspots: hotspots.length, focus: pl.focus ?? "corridors" });
   }
 
   const town: TownData = {

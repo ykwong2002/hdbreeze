@@ -55,6 +55,9 @@ export interface ReferenceBlock {
 
 export type GroundKind = "park" | "water" | "road" | "paved";
 
+/** The layout technique a plot teaches and rewards with its third star. */
+export type Technique = "corridors" | "void" | "stepping";
+
 /** One plot of a town, as listed on the town overview. */
 export interface PlotSummary {
   /** Level id of the baked plot (`<town>-<plot>`). */
@@ -73,6 +76,7 @@ export interface PlotSummary {
   blocks: number;
   seasons: string[];
   hotspots: number;
+  focus?: Technique;
 }
 
 /** public/levels/<town>.json: a town and its plots. */
@@ -102,6 +106,7 @@ export interface BakedLevel {
   /** Breathability needed to clear (percent of the way from the careless plan to the empty plot). */
   passPct?: number;
   starPct?: number;
+  focus?: Technique;
   /** Master Plan 2019 subzone name. */
   subzone: string;
   tagline: string;

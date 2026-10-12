@@ -58,6 +58,8 @@ export async function runIntro(s: LevelSession, hooks: IntroHooks, force = false
       hooks.status(`A careless plan: walls across the ${label} wind, every block high. Watch the streets heat up.`, "careless");
       await settle();
       const careless = await measure();
+      hooks.status(`This is 0% breathable: the walkways read ${careless.toFixed(1)} °C against ${empty.toFixed(1)} °C on the empty plot (model values).`, "careless");
+      await sleep(2500);
       s.blocks.clearAll();
       const b = { empty: Math.round(empty * 100) / 100, careless: Math.round(careless * 100) / 100 };
       s.scoring.setBaseline(sid, b);

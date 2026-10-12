@@ -1,3 +1,4 @@
+const SIZE: Record<string, string> = { slab: "54 m", point: "26 m", l: "40 m", mscp: "60 m", courtyard: "", pavilion: "" };
 import type { Blocks } from "../game/blocks";
 import { typology, type TypologyId } from "../game/typologies";
 
@@ -23,7 +24,7 @@ export function mountTray(root: HTMLElement, blocks: Blocks, onSelect: (t: Typol
   for (const item of blocks.level.tray) {
     const b = document.createElement("button");
     b.className = "chip chip-tray";
-    b.innerHTML = `<span class="tray-icon tray-${item.type}"></span><span class="tray-name">${typology(item.type).short}</span><span class="tray-count"></span>`;
+    b.innerHTML = `<span class="tray-icon tray-${item.type}"></span><span class="tray-name">${typology(item.type).short}${SIZE[item.type] ? ` · ${SIZE[item.type]}` : ""}</span><span class="tray-count"></span>`;
     b.onclick = () => {
       selected = item.type;
       onSelect(selected);

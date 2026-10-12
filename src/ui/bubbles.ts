@@ -15,6 +15,7 @@ export function mountBubbles(root: HTMLElement, map: MlMap): Bubbles {
   strip.className = "comment";
   strip.hidden = true;
   strip.innerHTML = `<span class="comment-who"></span><span class="comment-text"></span>`;
+  const place = (): void => { const card = document.querySelector(".score"); if (card) strip.style.top = `${card.getBoundingClientRect().bottom + 8}px`; };
   root.append(strip);
   const dot = document.createElement("div");
   dot.className = "comment-dot";
@@ -45,6 +46,7 @@ export function mountBubbles(root: HTMLElement, map: MlMap): Bubbles {
   const label: Record<Tier, string> = { miserable: "😓", warm: "😐", pleasant: "😊", cold: "🥶" };
   return {
     say(_ll, text, tier, f) {
+      place();
       who.textContent = label[tier];
       textEl.textContent = text;
       strip.dataset.tier = tier;

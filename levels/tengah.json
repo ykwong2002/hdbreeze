@@ -2,7 +2,7 @@
   "id": "tengah",
   "name": "Tengah",
   "planningArea": "TENGAH",
-  "tagline": "Singapore's newest town, planned around wind from day one.",
+  "tagline": "Singapore's newest town, planned around nature from day one.",
   "wind": {
     "seasons": [
       {
@@ -25,7 +25,7 @@
   "plots": [
     {
       "id": "p1",
-      "label": "Plantation, last plot",
+      "label": "Plantation plot",
       "at": [
         103.73302,
         1.3525
@@ -40,23 +40,26 @@
           ],
           "targetC": 32.0
         }
-      ]
+      ],
+      "focus": "corridors"
     },
     {
       "id": "p2",
-      "label": "Garden district",
+      "label": "Garden district plot",
       "at": [
         103.73466,
         1.37293
-      ]
+      ],
+      "focus": "void"
     },
     {
       "id": "p3",
-      "label": "Park district",
+      "label": "Park district plot",
       "at": [
         103.73314,
         1.36921
-      ]
+      ],
+      "focus": "stepping"
     }
   ]
 }

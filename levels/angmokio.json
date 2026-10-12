@@ -26,31 +26,33 @@
   "plots": [
     {
       "id": "p1",
-      "label": "Cheng San north",
+      "label": "Cheng San plot",
       "at": [
         103.85722,
         1.37556
       ],
       "required": [
         "ne"
-      ]
+      ],
+      "focus": "corridors"
     },
     {
       "id": "p2",
-      "label": "Ang Mo Kio Ave 5",
+      "label": "Plot off Ave 5",
       "at": [
         103.85336,
         1.38088
-      ]
+      ],
+      "focus": "void"
     },
     {
       "id": "p3",
-      "label": "Cheng San reserve",
+      "label": "Plot off Ave 3",
       "at": [
-        103.85029,
-        1.37072
+        103.83002,
+        1.3692
       ],
-      "gpr": 3.0
+      "focus": "stepping"
     }
   ]
 }

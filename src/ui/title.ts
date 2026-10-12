@@ -19,7 +19,7 @@ export function showTitle(root: HTMLElement, onStart: () => void, onWhy: () => v
 
 const WHY = [
   { ico: "🌡️", h: "Singapore is hot, and getting hotter", p: "Dense towns trap heat. The cheapest cooling we have is the breeze: a light wind of about 1 m/s makes the air feel a degree or two cooler. Where blocks stand in its way, the streets between them turn stuffy." },
-  { ico: "🏙️", h: "Planners model the wind before they build", p: "URA's Master Plan sets a plot ratio for every parcel: how much floor area must fit on it. HDB then studies wind, sun and noise with environmental models before laying out a precinct, so the blocks house everyone and still let the air through." },
+  { ico: "🏙️", h: "Planners think about the wind before they build", p: "Every parcel has a plot ratio: how much floor area has to fit on it. Planners study wind, sun and noise before a precinct is laid out, so the blocks house everyone and still let the air through. Everything in this game is an estimate of that, for fun and education." },
   { ico: "🎮", h: "Your job", p: "Take a real empty plot, place the whole tray of blocks the plot ratio calls for, and keep the walkways breathable. Rows along the wind, gaps between them, void decks and stepped heights all help. Pass it in both monsoons where the plot asks for it." },
 ];
 
@@ -79,7 +79,7 @@ export function showAbout(root: HTMLElement): { unmount(): void } {
       <p>HDBreeze is a fan-made educational toy. The wind is a 2D lattice-Boltzmann flow at ground level with a simple heat model, not real CFD: it shows the shape of the problem, not the numbers a planner would use.</p>
       <p><strong>Data:</strong> HDB block footprints and storeys (HDB Existing Building, HDB Property Information) and Master Plan land use and plot ratios (URA) via data.gov.sg under the Singapore Open Data Licence; other buildings and footpaths © OpenStreetMap contributors; basemap OpenFreeMap / OpenMapTiles.</p>
       <p><strong>Residents' lines</strong> come from a 0.8-million-parameter character model trained for this game on a small Singlish corpus; it runs in your browser.</p>
-      <p>Not affiliated with or endorsed by HDB or URA.</p>
+      <p>Everything here is an estimate, for fun and educational value. Not affiliated with or endorsed by HDB or URA.</p>
       <div class="endcard-btns"><button class="btn btn-primary howto-ok">Close</button></div>
     </div>`;
   root.append(el);

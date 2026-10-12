@@ -2,7 +2,7 @@
   "id": "punggol",
   "name": "Punggol",
   "planningArea": "PUNGGOL",
-  "tagline": "A waterfront town HDB modelled for wind before building.",
+  "tagline": "Singapore's first eco-town, shaped by water and wind.",
   "wind": {
     "seasons": [
       {
@@ -25,23 +25,25 @@
   "plots": [
     {
       "id": "p1",
-      "label": "Punggol East",
+      "label": "Plot off Punggol East",
       "at": [
         103.91841,
         1.40399
-      ]
+      ],
+      "focus": "corridors"
     },
     {
       "id": "p2",
-      "label": "Northshore edge",
+      "label": "Plot off Northshore",
       "at": [
         103.91457,
         1.41028
-      ]
+      ],
+      "focus": "void"
     },
     {
       "id": "p3",
-      "label": "Town centre site",
+      "label": "Plot by the town centre",
       "at": [
         103.90439,
         1.40626
@@ -57,7 +59,8 @@
           ],
           "targetC": 32.0
         }
-      ]
+      ],
+      "focus": "stepping"
     }
   ]
 }
