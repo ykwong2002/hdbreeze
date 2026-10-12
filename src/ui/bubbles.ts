@@ -1,49 +1,62 @@
 import type { Map as MlMap } from "maplibre-gl";
 import type { Tier } from "../game/lines";
 
-/** One speech bubble at a time, anchored to a resident through map.project. */
+/**
+ * Resident comments in a fixed strip under the score card, out of the play area,
+ * with a small dot on the map marking who said it. One comment at a time, held for a few seconds.
+ */
 export interface Bubbles {
   say(lonLat: [number, number], text: string, tier: Tier, follow: () => [number, number] | null): void;
   unmount(): void;
 }
 
-export function mountBubbles(root: HTMLElement, map: MlMap, headOffsetPx = 26): Bubbles {
-  const el = document.createElement("div");
-  el.className = "bubble";
-  el.hidden = true;
-  root.append(el);
+export function mountBubbles(root: HTMLElement, map: MlMap): Bubbles {
+  const strip = document.createElement("div");
+  strip.className = "comment";
+  strip.hidden = true;
+  strip.innerHTML = `<span class="comment-who"></span><span class="comment-text"></span>`;
+  root.append(strip);
+  const dot = document.createElement("div");
+  dot.className = "comment-dot";
+  dot.hidden = true;
+  root.append(dot);
+  const who = strip.querySelector<HTMLElement>(".comment-who")!;
+  const textEl = strip.querySelector<HTMLElement>(".comment-text")!;
   let follow: (() => [number, number] | null) | null = null;
   let until = 0;
   const tick = (): void => {
-    if (!el.hidden && follow) {
+    if (!strip.hidden && follow) {
       const ll = follow();
       if (!ll || performance.now() > until) {
-        el.hidden = true;
+        strip.hidden = true;
+        dot.hidden = true;
         follow = null;
       } else {
         const p = map.project(ll);
         const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
         const onScreen = p.x > 0 && p.y > 0 && p.x < w && p.y < h;
-        const half = el.offsetWidth / 2 + 6;
-        const x = Math.max(half, Math.min(w - half, p.x));
-        el.style.transform = `translate(-50%, -100%) translate(${x.toFixed(1)}px, ${(p.y - headOffsetPx).toFixed(1)}px)`;
-        el.style.visibility = onScreen ? "visible" : "hidden";
+        dot.hidden = !onScreen;
+        dot.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) translate(-50%, -50%)`;
       }
     }
     raf = requestAnimationFrame(tick);
   };
   let raf = requestAnimationFrame(tick);
+  const label: Record<Tier, string> = { miserable: "😓", warm: "😐", pleasant: "😊", cold: "🥶" };
   return {
     say(_ll, text, tier, f) {
-      el.textContent = text;
-      el.dataset.tier = tier;
-      el.hidden = false;
+      who.textContent = label[tier];
+      textEl.textContent = text;
+      strip.dataset.tier = tier;
+      strip.hidden = false;
+      dot.dataset.tier = tier;
       follow = f;
-      until = performance.now() + 2600;
+      until = performance.now() + 5200;
     },
     unmount() {
       cancelAnimationFrame(raf);
-      el.remove();
+      strip.remove();
+      dot.remove();
     },
   };
 }

@@ -85,3 +85,9 @@ Image share → text only; Ang Mo Kio two-season rule → single season; floatin
 - Phone: open the preview inside LinkedIn, read fps from `?dev=1`, confirm tap targets.
 
 ---
+
+## v3 addendum (2026-10-12, after the owner's second playtest)
+
+- Controls: drag from the tray to place, drag a block to move, twist two fingers to rotate (`src/ui/gestures.ts`, ghost footprint in `src/map/ghost.ts`). Tap-to-place and the toolbar's 45° turn remain for mouse users.
+- Heat model: sun exposure is the main heat source and shade the main relief (`q` 0.3, shade removes 80% of the source), wind chill unchanged; void decks shade. Exposed walkways through the build areas start red, which is what the player cools. The score samples every walkway within 35 m of the areas, so an empty level starts around 30 and thresholds are recalibrated with `?calib=1`.
+- The residents' tiny language model (`tools/lm`, `src/lm`) supplies two in three speech bubbles and the 🗣 card.

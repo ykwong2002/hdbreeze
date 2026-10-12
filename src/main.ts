@@ -9,6 +9,7 @@ import { mountHud } from "./ui/hud";
 import { mountSelect } from "./ui/select";
 import { mountTray, type Tray } from "./ui/tray";
 import { mountToolbar, type Toolbar } from "./ui/toolbar";
+import { mountGestures, type Gestures } from "./ui/gestures";
 import { mountScore } from "./ui/score";
 import { mountBubbles, type Bubbles } from "./ui/bubbles";
 import { showEndCard } from "./ui/endcard";
@@ -63,6 +64,7 @@ async function boot(): Promise<void> {
   let hud: ReturnType<typeof mountHud> | null = null;
   let tray: Tray | null = null;
   let toolbar: Toolbar | null = null;
+  let gestures: Gestures | null = null;
   let score: ReturnType<typeof mountScore> | null = null;
   let bubbles: Bubbles | null = null;
   let endcard: { unmount(): void } | null = null;
@@ -82,6 +84,8 @@ async function boot(): Promise<void> {
     score = null;
     toolbar?.unmount();
     toolbar = null;
+    gestures?.unmount();
+    gestures = null;
     tray?.unmount();
     tray = null;
     hud?.unmount();
@@ -102,7 +106,7 @@ async function boot(): Promise<void> {
       showResidents(ui, sess.brain, () => tierFor(comfort()), () => sess.scoring.state.meanFeelsLike);
     });
     // the residents' language model loads after the level is up; 1.5 MB, worker thread
-    void session.overlay.ready.then(async () => {
+    if (!new URLSearchParams(location.search).has("nolm")) void session.overlay.ready.then(async () => {
       brainMod ??= await import("./lm/resident");
       const sess = session;
       if (!sess) return;
@@ -111,7 +115,9 @@ async function boot(): Promise<void> {
       await brain.load(`${import.meta.env.BASE_URL}models/resident.bin`);
     });
     const s = session;
-    tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; });
+    gestures = mountGestures(hdb.map, s, ui);
+    const g = gestures;
+    tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; }, (t, ev) => g.beginTrayDrag(t, ev));
     toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));
     s.moveMode = () => toolbar?.moveMode() ?? false;
     s.onSelection((id) => {

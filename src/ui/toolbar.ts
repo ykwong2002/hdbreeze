@@ -16,10 +16,9 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
   el.className = "toolbar";
   el.hidden = true;
   el.innerHTML = `
-    <button class="tb rotate" title="Rotate">⟳<small>rotate</small></button>
+    <button class="tb rotate" title="Rotate">⟳<small>turn 45°</small></button>
     <button class="tb height" title="Height"><span class="tb-st">16</span><small>height</small></button>
     <button class="tb void" title="Void deck">⌂<small>void deck</small></button>
-    <button class="tb move" title="Move">✥<small>move</small></button>
     <button class="tb remove" title="Remove">✕<small>remove</small></button>`;
   root.append(el);
   let id: string | null = null;
@@ -28,7 +27,6 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
   q<HTMLButtonElement>(".rotate").onclick = () => { if (id) { const r = blocks.rotate(id); if (!r.ok) shake(); } };
   q<HTMLButtonElement>(".height").onclick = () => { if (id) blocks.cycleHeight(id); };
   q<HTMLButtonElement>(".void").onclick = () => { if (id) blocks.toggleVoid(id); };
-  q<HTMLButtonElement>(".move").onclick = () => { move = !move; refresh(); };
   q<HTMLButtonElement>(".remove").onclick = () => { if (id) blocks.remove(id); hide(); onDone(); };
 
   function shake(): void {
@@ -46,8 +44,6 @@ export function mountToolbar(root: HTMLElement, map: MlMap, blocks: Blocks, onDo
     q<HTMLButtonElement>(".height").disabled = !t.residential;
     q<HTMLButtonElement>(".void").disabled = !t.residential;
     q<HTMLButtonElement>(".void").classList.toggle("on", b.voidDeck);
-    q<HTMLButtonElement>(".move").classList.toggle("on", move);
-    q<HTMLElement>(".move small").textContent = move ? "tap spot" : "move";
   }
   const tick = (): void => {
     if (!el.hidden && id) {

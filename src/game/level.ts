@@ -4,6 +4,7 @@ import { createAgentsLayer } from "../map/agents-layer";
 import { addLevelLayers, LEVEL_PLOTS_FILL, removeLevelLayers } from "../map/buildings";
 import { createWindOverlay, type WindOverlay } from "../map/overlay-layer";
 import { ensurePlacedLayer, PLACED_LAYER, removePlacedLayer, updatePlacedLayer } from "../map/placed";
+import { removeGhostLayer } from "../map/ghost";
 import { FIRST_LABEL_LAYER } from "../map/style";
 import type { SolverKind } from "../sim/solver";
 import type { BuildingGeom } from "../sim/obstacles";
@@ -42,6 +43,10 @@ export interface LevelSession {
   select(id: string | null): void;
   onSelection(cb: (id: string | null) => void): void;
   onReject(cb: (reason: string) => void): void;
+  /** Lets the gesture layer report a refused drop through the same channel as taps. */
+  reject(reason: string): void;
+  /** Ignore the click MapLibre fires after a drag or a two-finger gesture. */
+  suppressNextClick(): void;
   onHint(cb: (text: string) => void): void;
   onScore(cb: (s: ScoreState) => void): void;
   onSpeech(cb: (s: Speech) => void): void;
@@ -115,7 +120,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
   let last = performance.now();
   let samplePts: [number, number][] | null = null;
   let samplePtsDirty = true;
-  let nextSpeech = performance.now() + 2500;
+  let nextSpeech = performance.now() + 4000;
   let lastLine = "";
   let clearedFired = false;
   overlay.ready
@@ -136,8 +141,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
         let meanComfort: number | null = null, meanFeels: number | null = null;
         if (sim.readback.ready) {
           if (!samplePts || samplePtsDirty) {
-            const rings = blocks.geometries().flatMap((g) => g.obstacleRings.map((r) => r.map((p) => sim.toCell(p[0], p[1]))));
-            samplePts = ag.samplePoints(rings);
+            samplePts = ag.samplePoints([]); // all walkways near the areas, plus void-deck hangouts
             samplePtsDirty = false;
           }
           let c = 0, f = 0, n = 0;
@@ -156,7 +160,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
           for (const cb of clearedListeners) cb();
         }
         if (now >= nextSpeech && ag.agents.length && sim.readback.ready) {
-          nextSpeech = now + 1400 + Math.random() * 1200;
+          nextSpeech = now + 6500 + Math.random() * 3000; // one comment every 6-10 s, held in the strip
           const a = ag.agents[Math.floor(Math.random() * ag.agents.length)]!;
           const tier = tierFor(a.comfort);
           const emit = (text: string): void => {
@@ -214,7 +218,9 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     select(null);
     return "deselected";
   };
+  let suppressClick = false;
   const onMapClick = (e: MapMouseEvent): void => {
+    if (suppressClick) { suppressClick = false; return; }
     const hit = map.queryRenderedFeatures(e.point, { layers: [PLACED_LAYER] })[0];
     const id = (hit?.properties?.block as string | undefined) ?? null;
     const r = tap([e.lngLat.lng, e.lngLat.lat], id);
@@ -279,6 +285,8 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
     select,
     onSelection: (cb) => { selectListeners.push(cb); },
     onReject: (cb) => { rejectListeners.push(cb); },
+    reject: (reason) => { for (const cb of rejectListeners) cb(reason); },
+    suppressNextClick: () => { suppressClick = true; window.setTimeout(() => { suppressClick = false; }, 400); },
     onHint: (cb) => { hintListeners.push(cb); },
     onScore: (cb) => { scoreListeners.push(cb); },
     onSpeech: (cb) => { speechListeners.push(cb); },
@@ -289,6 +297,7 @@ export async function startLevel(hdb: HdbMap, id: string, solver: SolverKind): P
       map.off("click", onMapClick);
       if (map.getLayer(AGENTS_ID)) map.removeLayer(AGENTS_ID);
       if (map.getLayer(OVERLAY_ID)) map.removeLayer(OVERLAY_ID);
+      removeGhostLayer(map);
       removePlacedLayer(map);
       removeLevelLayers(map);
     },

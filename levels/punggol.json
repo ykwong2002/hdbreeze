@@ -81,13 +81,13 @@
     ]
   ],
   "targets": {
-    "satisfaction": 94,
+    "satisfaction": 32,
     "holdSeconds": 4
   },
   "calibration": {
-    "ne_empty": 95.5,
-    "ne_naive": 92.7,
-    "ne_reference": 97.4,
-    "method": "?calib=1 harness 2026-10-12, spread layouts, 420 settle frames; threshold = reference minus margin"
+    "ne_empty": 30.8,
+    "ne_naive": 29.8,
+    "ne_reference": 33.6,
+    "method": "sun-exposure model 2026-10-12, single-page probes (machine under load); Ang Mo Kio provisional"
   }
 }

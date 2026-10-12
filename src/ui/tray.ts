@@ -9,7 +9,7 @@ export interface Tray {
   unmount(): void;
 }
 
-export function mountTray(root: HTMLElement, blocks: Blocks, onSelect: (t: TypologyId | null) => void): Tray {
+export function mountTray(root: HTMLElement, blocks: Blocks, onSelect: (t: TypologyId | null) => void, onDragStart?: (t: TypologyId, ev: PointerEvent) => void): Tray {
   const el = document.createElement("section");
   el.className = "tray";
   const hint = document.createElement("div");
@@ -29,6 +29,13 @@ export function mountTray(root: HTMLElement, blocks: Blocks, onSelect: (t: Typol
       onSelect(selected);
       refresh();
     };
+    b.onpointerdown = (ev) => {
+      if (b.disabled || !onDragStart) return;
+      selected = item.type;
+      onSelect(selected);
+      refresh();
+      onDragStart(item.type, ev);
+    };
     chips.set(item.type, b);
     row.append(b);
   }
@@ -45,7 +52,7 @@ export function mountTray(root: HTMLElement, blocks: Blocks, onSelect: (t: Typol
     if (!selected) selected = firstAvailable;
     for (const [type, chip] of chips) chip.classList.toggle("on", type === selected);
     const left = blocks.total() - blocks.blocks.length;
-    hint.textContent = left > 0 ? `Tap a highlighted area to place a ${selected ? typology(selected).short.toLowerCase() : "block"} · ${left} left` : "All blocks placed. Tap a block to adjust it.";
+    hint.textContent = left > 0 ? `Drag a ${selected ? typology(selected).short.toLowerCase() : "block"} into a glowing area · ${left} left` : "All placed. Drag to move, twist two fingers to turn, tap for more.";
     onSelect(selected);
   }
   refresh();
