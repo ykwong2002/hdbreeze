@@ -50,7 +50,7 @@ export function mountMapTouch(map: MlMap): { setRotator(r: BlockRotator | null):
         map.panBy([two.cx - c.x, two.cy - c.y], { duration: 0 });
         map.setZoom(two.zoom0 + Math.log2(c.dist / two.dist));
         const twist = c.angle - two.angle;
-        if (Math.abs(twist) > 4) map.setBearing(two.bearing0 + twist);
+        if (Math.abs(twist) > 4) map.setBearing(two.bearing0 - twist);
         two.cx = c.x; two.cy = c.y;
       }
       ev.preventDefault();
