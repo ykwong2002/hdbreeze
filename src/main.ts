@@ -82,6 +82,7 @@ async function boot(): Promise<void> {
   const checking = params.has("check");
   const demo = params.has("demo");
   const quiet = checking || isHarness() || demo;
+  if (demo) document.body.classList.add("in-demo");
   if (isHarness()) (window as unknown as { __hdb: unknown }).__hdb = hdb;
   if (isDevMode()) {
     const status = document.getElementById("status");

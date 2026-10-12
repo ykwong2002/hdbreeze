@@ -523,13 +523,20 @@ body.in-intro .leveltip { visibility: hidden; }
 .score-row .ico { color: var(--ink-soft); }
 .score-row.ok .ico { color: var(--cool); }
 .tv-stars .ico { width: 16px; height: 16px; color: var(--ink-soft); }
-.demo-caption { position: fixed; left: 50%; top: calc(14px + var(--safe-top)); z-index: 12; display: flex; align-items: center; gap: 12px; max-width: min(560px, calc(100% - 24px)); padding: 12px 18px; color: #fff; background: rgba(31, 28, 23, 0.86); border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); opacity: 0; transform: translate(-50%, -8px); transition: opacity 0.5s, transform 0.5s; pointer-events: none; }
-.demo-caption.on { opacity: 1; transform: translate(-50%, 0); }
-.demo-caption i { flex: 0 0 34px; height: 34px; display: grid; place-items: center; font: 800 18px/1 inherit; font-style: normal; color: #fff; background: var(--cool); border-radius: 50%; }
-.demo-caption strong { display: block; font-size: 18px; line-height: 1.15; }
-.demo-caption span { display: block; margin-top: 2px; font-size: 13px; opacity: 0.85; }
 body.in-intro .demo-caption { visibility: visible; }
 /* back-to-plot sits under the map controls in the top-right column, not in the bottom row */
 .chip-recenter { position: fixed; right: calc(10px + var(--safe-right)); top: calc(222px + var(--safe-top)); z-index: 5; width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border-radius: 10px; }
 .chip-recenter .ico { width: 20px; height: 20px; }
 body.in-intro .chip-recenter { visibility: hidden; }
+/* demo captions get their own band at the top; everything else moves down so nothing sits behind them */
+.demo-caption { position: fixed; left: calc(12px + var(--safe-left)); right: calc(12px + var(--safe-right)); top: calc(10px + var(--safe-top)); height: 64px; z-index: 12; display: flex; align-items: center; gap: 12px; padding: 0 16px; color: #fff; background: rgba(31, 28, 23, 0.9); border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); opacity: 0; transform: translateY(-8px); transition: opacity 0.5s, transform 0.5s; pointer-events: none; }
+.demo-caption.on { opacity: 1; transform: none; }
+.demo-caption i { flex: 0 0 32px; height: 32px; display: grid; place-items: center; font: 800 17px/1 inherit; font-style: normal; color: #fff; background: var(--cool); border-radius: 50%; }
+.demo-caption strong { display: block; font-size: 17px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-caption span { display: block; margin-top: 2px; font-size: 12px; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-caption div { min-width: 0; }
+body.in-demo .score { top: calc(86px + var(--safe-top)); }
+body.in-demo .maplibregl-ctrl-top-right { top: calc(86px + var(--safe-top)); }
+body.in-demo .chip-recenter { top: calc(298px + var(--safe-top)); }
+body.in-demo .leveltip, body.in-demo .toolbar { top: calc(346px + var(--safe-top)); }
+body.in-demo .hint { top: calc(330px + var(--safe-top)); }
