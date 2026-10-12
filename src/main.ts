@@ -80,7 +80,8 @@ async function boot(): Promise<void> {
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   if (!coarse) document.querySelector(".brand-touch")?.setAttribute("hidden", "");
   const checking = params.has("check");
-  const quiet = checking || isHarness();
+  const demo = params.has("demo");
+  const quiet = checking || isHarness() || demo;
   if (isHarness()) (window as unknown as { __hdb: unknown }).__hdb = hdb;
   if (isDevMode()) {
     const status = document.getElementById("status");
@@ -226,9 +227,18 @@ async function boot(): Promise<void> {
       void runCheck(s, (line) => { box.textContent += line + "\n"; console.log("[check]", line); });
     } else if (!params.has("nointro")) {
       document.body.classList.add("in-intro");
-      plotcard = showPlotCard(ui, s.level, () => { plotcard = null; document.body.classList.remove("in-intro"); if (!quiet) onboarding = mountOnboarding(ui, s); });
+      plotcard = showPlotCard(ui, s.level, () => {
+        plotcard = null;
+        document.body.classList.remove("in-intro");
+        if (!quiet) onboarding = mountOnboarding(ui, s);
+        if (demo) void import("./dev/demo").then(({ runDemo }) => runDemo(s, hdb.map));
+      });
       const card = plotcard;
-      void runIntro(s, { status: (text, phase) => card.status(text, phase), wait: (label) => (isHarness() ? Promise.resolve() : card.wait(label)) }, params.has("recal")).catch((e) => { console.error("[hdbreeze] intro", e); card.status("", "done"); });
+      const autoWait = (label: string): Promise<void> => (isHarness() ? Promise.resolve() : demo ? new Promise((r) => { card.status(`<strong>This is 0% breathable.</strong> Walls across the wind, every block tall. (${label})`, "careless"); window.setTimeout(r, 5000); }) : card.wait(label));
+      void runIntro(s, {
+        status: (text, phase) => { card.status(text, phase); if (demo && phase === "done") window.setTimeout(() => ui.querySelector<HTMLButtonElement>(".pc-build")?.click(), 1500); },
+        wait: autoWait,
+      }, params.has("recal") || demo).catch((e) => { console.error("[hdbreeze] intro", e); card.status("", "done"); });
     } else if (!quiet) onboarding = mountOnboarding(ui, s);
 
     s.onCleared(() => {

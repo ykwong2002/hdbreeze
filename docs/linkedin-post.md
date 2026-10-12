@@ -1,19 +1,23 @@
-# LinkedIn post (draft for the owner to edit)
+# LinkedIn post
 
-I built a small game about something most of us never see: the wind studies behind an HDB town.
+what if you could bend the wind?
 
-🌬️ HDBreeze — plan a liveable HDB precinct
+that was the title of a URA instagram story i swiped past last week, and it kind of stuck with me. turns out the little things we never notice, how tall a block is, which way it faces, how the blocks cluster, where the gaps are, decide whether the breeze actually reaches the void deck or dies behind a wall of flats.
 
-Singapore is hot, and the cheapest cooling we have is the breeze. Before HDB lays out a new precinct, planners model wind, sun and noise so that thousands of homes fit on the plot the Master Plan allows *and* the streets between them still breathe.
+i thought "damn, that would be a pretty sick game." then i remembered i had some spare claude credits before my reset this week. two days later, lo and behold:
 
-In the game you get a real empty plot in Punggol, Tengah or Ang Mo Kio, the full tray of blocks its plot ratio calls for, and a live wind simulation on the map. First you see what a careless plan does (walls across the wind, every block tall: the streets turn red). Then it's your turn: turn slabs along the monsoon, leave gaps, step the heights, open void decks. Some plots must pass both the NE and SW monsoons. Clear all three plots and you've planned a town.
+HDBreeze: a little game where you lay out an actual HDB precinct on a real empty plot and try to keep the walkways breathable in both monsoons. plays in your phone browser, link in the comments.
 
-A few things under the hood, for the curious:
-• The wind is a 2D lattice-Boltzmann flow running on your phone's GPU (WebGL2), not real CFD, but enough to show why layout matters.
-• Buildings and storeys come from data.gov.sg (HDB Existing Building + Property Information, 99% joined), plots and plot ratios from URA's Master Plan land use, footpaths from OpenStreetMap.
-• The residents walking around complain in Singlish. Those lines come from a tiny language model I trained for this: a 4-layer, 0.8M-parameter character-level transformer (nanoGPT-style, PyTorch on a MacBook) on a few thousand hand-written and templated lines about being too hot, too cold or just nice. It's exported to fp16 (1.6 MB) and runs in a Web Worker in the browser, about 100 ms per line. No API calls, nothing leaves your phone.
-• No analytics, no accounts, no cookies beyond your own progress.
+how it goes: pick a town (punggol, tengah or ang mo kio), get a real plot and a tray of blocks sized to what the plot allows. first you watch the careless plan, walls across the wind, every block tall, and the streets turn red. then it's your turn: rows along the wind, gaps between them, void decks, heights stepping down. the residents strolling around will tell you in singlish whether it's shiok or sibei hot.
 
-Fan-made and educational; not affiliated with HDB or URA. Works best on a phone in Chrome or Safari. Link in the comments. I'd love to hear from planners and architects whether the lessons ring true, and from everyone else which plot was hardest.
+the part i actually care about: we walk past this stuff every day. the gap between two blocks, the void deck that always has a breeze, the corridor that never does. none of it is an accident, someone modelled it. i just think it's cool that our city gets built with the wind in mind, and a game felt like the easiest way to make that visible. next time you're at a bus stop that somehow always has a breeze, look at what's standing upwind.
 
-#UrbanPlanning #Singapore #HDB #WebGL #GameDev #LLM
+nerdy bits, for those who want them:
+• the wind is a 2d lattice-boltzmann fluid sim (d2q9) running on your phone's gpu in webgl2, with a simple heat model on top: the ground heats the air, the breeze carries it off, blocks cast wakes. not real cfd, but enough to show why layout matters.
+• the buildings are real: hdb footprints and storeys from data.gov.sg, plot boundaries and plot ratios from the ura master plan, the rest from openstreetmap.
+• the residents' complaints come from a tiny language model trained just for this: a 4-layer, 0.8m-parameter nanogpt-style character model, trained in a few minutes on a laptop on a few thousand singlish lines about being too hot, too cold or just nice. exported to fp16 (1.6 mb), it runs in a web worker in the browser, about 100 ms a line. nothing leaves your phone.
+• no accounts, no analytics, no cookies beyond your own progress.
+
+fan-made, everything in it is an estimate, not affiliated with hdb or ura. if you clear all three plots in tengah, tell me how.
+
+#singapore #urbanplanning #hdb #webgl #gamedev #llm
