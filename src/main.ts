@@ -28,7 +28,23 @@ function solverKind(): SolverKind {
   return v === "stable" ? "stable" : "lbm";
 }
 
+/** A page held by an in-app browser cache can outlive a deploy; reload once if the server has a newer build. */
+async function checkFreshness(): Promise<void> {
+  try {
+    const r = await fetch(`${import.meta.env.BASE_URL}version.json`, { cache: "no-store" });
+    if (!r.ok) return;
+    const { build } = (await r.json()) as { build?: string };
+    if (build && build !== __BUILD_ID__ && sessionStorage.getItem("hdbreeze.reloaded") !== build) {
+      sessionStorage.setItem("hdbreeze.reloaded", build);
+      location.reload();
+    }
+  } catch {
+    /* offline or blocked: carry on */
+  }
+}
+
 async function boot(): Promise<void> {
+  void checkFreshness();
   const container = document.getElementById("map");
   const ui = document.getElementById("ui");
   if (!container || !ui) throw new Error("missing #map / #ui");
