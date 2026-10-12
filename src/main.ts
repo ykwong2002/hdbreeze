@@ -71,6 +71,10 @@ async function boot(): Promise<void> {
   }
   const params = new URLSearchParams(location.search);
   const touch = mountMapTouch(hdb.map);
+  // the browser's own pinch zoom would leave the page stuck zoomed in (iOS ignores maximum-scale)
+  for (const ev of ["gesturestart", "gesturechange", "gestureend"]) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
+  document.addEventListener("touchmove", (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   if (!coarse) document.querySelector(".brand-touch")?.setAttribute("hidden", "");
   const checking = params.has("check");
@@ -149,11 +153,17 @@ async function boot(): Promise<void> {
     session = s;
     if (!currentTown && s.level.town) currentTown = await loadTown(s.level.town);
     const town = currentTown;
+    const recenter = (): void => {
+      const ring = s.level.site;
+      let x = 0, y = 0;
+      for (const p of ring) { x += p[0]; y += p[1]; }
+      hdb.map.flyTo({ center: [x / ring.length, y / ring.length], zoom: s.level.camera.zoom, pitch: s.level.camera.pitch, bearing: 0, duration: 900, essential: true });
+    };
     hud = mountHud(ui, s, () => { if (town) void showTown(town.id); else showTowns(); }, () => showHowTo(ui), () => {
       if (!s.brain) return;
       const comfort = (): number => { const st = s.scoring.state; const t = Math.min(1, Math.max(0, (st.meanFeelsLike - 27.5) / 7)); return 1 - t * t * (3 - 2 * t); };
       showResidents(ui, s.brain, () => tierFor(comfort()), () => s.scoring.state.meanFeelsLike);
-    });
+    }, recenter);
     if (!params.has("nolm")) void s.overlay.ready.then(async () => {
       brainMod ??= await import("./lm/resident");
       if (session !== s) return;

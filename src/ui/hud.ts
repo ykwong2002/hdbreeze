@@ -3,7 +3,7 @@ import { sound } from "../sound";
 import { ICON } from "./icons";
 
 /** In-level chrome for M1: season toggle + back. Score and homes arrive in M3. */
-export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void, onHelp: () => void, onResidents: () => void, backLabel = "← Plots"): { update(): void; unmount(): void } {
+export function mountHud(root: HTMLElement, session: LevelSession, onBack: () => void, onHelp: () => void, onResidents: () => void, onRecenter: () => void, backLabel = "← Plots"): { update(): void; unmount(): void } {
   const bar = document.createElement("div");
   bar.className = "hud";
   const back = document.createElement("button");
@@ -36,9 +36,14 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
   mute.setAttribute("aria-label", "Sound on/off");
   mute.innerHTML = sound.enabled ? ICON.sound : ICON.mute;
   mute.onclick = () => { mute.innerHTML = sound.toggle() ? ICON.sound : ICON.mute; };
+  const recenter = document.createElement("button");
+  recenter.className = "chip";
+  recenter.setAttribute("aria-label", "Back to the plot");
+  recenter.innerHTML = ICON.target;
+  recenter.onclick = onRecenter;
   const dev = document.createElement("span");
   dev.className = "devstats";
-  bar.append(back, seasonBtn, residents, help, mute, dev);
+  bar.append(back, seasonBtn, residents, help, mute, recenter, dev);
   root.append(bar);
 
   const update = (): void => {

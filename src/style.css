@@ -26,6 +26,7 @@ body {
   background: var(--paper);
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 #map {
