@@ -24,6 +24,7 @@ import { mountOnboarding } from "./ui/onboarding";
 import { showResidents } from "./ui/residents";
 import { mountHotSpotMarkers } from "./ui/hotspot-markers";
 import { mountMapTouch } from "./ui/maptouch";
+import { createTour } from "./ui/tour";
 import { ICON } from "./ui/icons";
 import { tierFor } from "./game/lines";
 
@@ -71,6 +72,7 @@ async function boot(): Promise<void> {
   }
   const params = new URLSearchParams(location.search);
   const touch = mountMapTouch(hdb.map);
+  const tour = createTour(hdb.map);
   // the browser's own pinch zoom would leave the page stuck zoomed in (iOS ignores maximum-scale)
   for (const ev of ["gesturestart", "gesturechange", "gestureend"]) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
   document.addEventListener("touchmove", (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
@@ -132,12 +134,13 @@ async function boot(): Promise<void> {
     townView = null;
     select.show();
     hdb.map.setMaxBounds(SINGAPORE_VIEW.maxBounds);
-    hdb.map.flyTo({ center: SINGAPORE_VIEW.center, zoom: SINGAPORE_VIEW.zoom, pitch: 0, bearing: 0, duration: 1800 });
+    tour.start();
   };
   const showTown = async (id: string): Promise<void> => {
     teardownLevel();
     townView?.unmount();
     select.hide();
+    tour.stop();
     const town = await loadTown(id);
     currentTown = town;
     townView = mountTown(ui, hdb.map, town, progress, (levelId) => void play(levelId), showTowns);
@@ -145,6 +148,7 @@ async function boot(): Promise<void> {
 
   const play = async (levelId: string): Promise<void> => {
     sound.init();
+    tour.stop();
     townView?.unmount();
     townView = null;
     teardownLevel();
@@ -271,6 +275,10 @@ async function boot(): Promise<void> {
   void Promise.all(towns.map((t) => loadTown(t.id))).then(() => select.show()).then(() => { if (!select) return; });
 
   const deep = params.get("level");
+  if (!deep && !params.get("town") && !quiet) {
+    const begin = (): void => tour.start();
+    if (hdb.map.loaded()) begin(); else hdb.map.once("load", begin);
+  }
   if (deep) {
     select.hide();
     const start = (): void => void play(deep);
