@@ -58,7 +58,7 @@ export function showHowTo(root: HTMLElement): { unmount(): void } {
       <ol>
         <li><span class="howto-ico">${ICON.target}</span><span><strong>Clear a plot:</strong> place every block in the tray, house the target, and keep the precinct breathable (the big number) above the line for a few seconds.</span></li>
         <li><span class="howto-ico">${ICON.hand}</span><span><strong>Drag</strong> a block from the tray onto the plot, drag it again to move. <strong>Twist two fingers</strong> to turn it. <strong>Tap</strong> it for height, void deck and remove.</span></li>
-        <li><span class="howto-ico">${ICON.fingers2}</span><span><strong>Two fingers</strong> drag the map and pinch to zoom. <strong>Three-finger tap</strong> tilts the view.</span></li>
+        <li><span class="howto-ico">${ICON.fingers2}</span><span><strong>Two fingers</strong> drag the map, pinch to zoom and twist to look around. <strong>Three-finger tap</strong> tilts the view.</span></li>
         <li><span class="howto-ico">${ICON.wind}</span><span><strong>The arrow is the wind.</strong> Rows along it and gaps between them are corridors; walls across it make stuffy pockets. Blue is breezy, red is stuffy.</span></li>
         <li><span class="howto-ico">${ICON.cloud}</span><span><strong>Two monsoons.</strong> NE (Dec–Mar) and SW (Jun–Sep) blow from opposite sides. Tap the monsoon chip to switch; some plots must pass both.</span></li>
       </ol>

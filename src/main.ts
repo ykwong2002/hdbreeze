@@ -117,6 +117,7 @@ async function boot(): Promise<void> {
     endcard = onboarding = markers = bubbles = score = toolbar = gestures = tray = hud = plotcard = null;
     session?.dispose();
     session = null;
+    document.body.classList.remove("block-selected");
     touch.setRotator(null);
     tip?.remove();
     tip = null;
@@ -165,14 +166,14 @@ async function boot(): Promise<void> {
     tip = document.createElement("div");
     tip.className = "leveltip";
     tip.innerHTML = coarse
-      ? `<span>${ICON.hand} drag a block to move it</span><span>${ICON.rotate} twist two fingers to turn it</span><span>${ICON.fingers2} two fingers drag the map</span><span>${ICON.fingers3} three-finger tap tilts</span>`
-      : `<span>${ICON.hand} drag a block to move it</span><span>${ICON.rotate} tap it, then turn 45°</span>`;
+      ? `<span>${ICON.hand} drag a block to move it</span><span>${ICON.rotate} twist two fingers to turn it</span><span>${ICON.fingers2} two fingers drag the map, twist to look around</span><span>${ICON.fingers3} three-finger tap tilts</span>`
+      : `<span>${ICON.hand} drag a block to move it</span><span>${ICON.rotate} tap it, then turn 45°</span><span>${ICON.fingers2} right-drag to look around</span>`;
     ui.append(tip);
     const g = gestures;
     tray = mountTray(ui, s.blocks, (t) => { s.trayType = t; }, (t, ev) => g.beginTrayDrag(t, ev));
     toolbar = mountToolbar(ui, hdb.map, s.blocks, () => s.select(null));
     s.moveMode = () => toolbar?.moveMode() ?? false;
-    s.onSelection((id) => { if (id) toolbar?.show(id); else toolbar?.hide(); });
+    s.onSelection((id) => { if (id) toolbar?.show(id); else toolbar?.hide(); document.body.classList.toggle("block-selected", !!id); });
     s.onReject(() => { tray?.shake(); sound.reject(); });
     let lastCount = 0;
     s.blocks.onChange(() => { const n = s.blocks.blocks.length; if (n > lastCount && !s.intro) sound.place(); lastCount = n; });

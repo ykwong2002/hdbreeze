@@ -3,7 +3,7 @@ import type { Map as MlMap } from "maplibre-gl";
 /**
  * Touch rules for the whole app (mouse is untouched):
  *   one finger      never moves the map (so dragging a block never pans by accident)
- *   two fingers     drag the map, pinch to zoom; with a block selected, twisting turns the block
+ *   two fingers     drag the map, pinch to zoom, twist to rotate the view; with a block selected, twisting turns the block
  *   three-finger tap  tilts the view between flat and 3D
  */
 export interface BlockRotator {
@@ -14,7 +14,7 @@ export interface BlockRotator {
 export function mountMapTouch(map: MlMap): { setRotator(r: BlockRotator | null): void; unmount(): void } {
   const container = map.getContainer();
   let rotator: BlockRotator | null = null;
-  let two: { cx: number; cy: number; dist: number; angle: number; rot0: number | null; id: string | null; zoom0: number } | null = null;
+  let two: { cx: number; cy: number; dist: number; angle: number; rot0: number | null; id: string | null; zoom0: number; bearing0: number } | null = null;
   let threeAt = 0;
   const centroid = (t: TouchList): { x: number; y: number; dist: number; angle: number } => {
     const a = t[0]!, b = t[1]!;
@@ -25,7 +25,7 @@ export function mountMapTouch(map: MlMap): { setRotator(r: BlockRotator | null):
     if (ev.touches.length === 2) {
       const c = centroid(ev.touches);
       const id = rotator?.selected() ?? null;
-      two = { cx: c.x, cy: c.y, dist: c.dist, angle: c.angle, rot0: null, id, zoom0: map.getZoom() };
+      two = { cx: c.x, cy: c.y, dist: c.dist, angle: c.angle, rot0: null, id, zoom0: map.getZoom(), bearing0: map.getBearing() };
       ev.preventDefault();
       ev.stopPropagation();
       return;
@@ -49,6 +49,8 @@ export function mountMapTouch(map: MlMap): { setRotator(r: BlockRotator | null):
       } else {
         map.panBy([two.cx - c.x, two.cy - c.y], { duration: 0 });
         map.setZoom(two.zoom0 + Math.log2(c.dist / two.dist));
+        const twist = c.angle - two.angle;
+        if (Math.abs(twist) > 4) map.setBearing(two.bearing0 + twist);
         two.cx = c.x; two.cy = c.y;
       }
       ev.preventDefault();
