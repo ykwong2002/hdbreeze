@@ -3,7 +3,7 @@
     "id": "punggol",
     "name": "Punggol",
     "subzone": "PUNGGOL",
-    "tagline": "A waterfront town HDB modelled for wind before building.",
+    "tagline": "Singapore's first eco-town, shaped by water and wind.",
     "center": [
       103.912473,
       1.406587
@@ -14,7 +14,7 @@
     "id": "tengah",
     "name": "Tengah",
     "subzone": "TENGAH",
-    "tagline": "Singapore's newest town, planned around wind from day one.",
+    "tagline": "Singapore's newest town, planned around nature from day one.",
     "center": [
       103.733628,
       1.364808
@@ -27,8 +27,8 @@
     "subzone": "ANG MO KIO",
     "tagline": "A mature town. Make it work in both monsoons.",
     "center": [
-      103.853603,
-      1.375735
+      103.847045,
+      1.375164
     ],
     "plots": 3
   }

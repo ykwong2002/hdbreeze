@@ -10,6 +10,8 @@ export interface EndCardOptions {
   minPct: number;
   starPct: number;
   targetHomes: number;
+  /** The plot's technique, for the third-star line. */
+  technique: string;
   lesson: string;
   /** Town totals when this was the last plot. */
   townSummary?: { homes: number; avgPct: number; stars: number };
@@ -36,14 +38,15 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
       <p class="endcard-sub">${o.plotLabel}</p>
       ${summary}
       <p class="endcard-lesson">💡 ${o.lesson}</p>
+      <p class="endcard-stars-h">Stars</p>
       <ul class="endcard-stars-why">
         <li>★ Cleared the plot</li>
         <li class="${o.minPct >= o.starPct && o.state.spotsMargin ? "got" : "missed"}">★ ${o.starPct}%+ breathable in every monsoon</li>
-        <li class="${o.state.homes >= 1.15 * o.targetHomes ? "got" : "missed"}">★ 15% more homes than needed (${Math.ceil(1.15 * o.targetHomes).toLocaleString()}+)</li>
+        <li class="${o.stars >= 3 ? "got" : "missed"}">★ ${o.technique}, or 90%+ breathable, or 15% more homes</li>
       </ul>
       <div class="endcard-btns">
-        ${last ? '<button class="btn btn-primary town">Town overview</button>' : '<button class="btn btn-primary next">Next plot →</button>'}
-        <button class="btn share">Share image</button>
+        <button class="btn btn-primary share">Share image</button>
+        ${last ? '<button class="btn town">Town overview</button>' : '<button class="btn next">Next plot →</button>'}
         <button class="btn replay">Keep building</button>
         ${last ? "" : '<button class="btn town">Town overview</button>'}
         <button class="btn btn-link share-text">copy as text instead</button>
@@ -52,8 +55,8 @@ export function showEndCard(root: HTMLElement, o: EndCardOptions): { unmount(): 
     </div>`;
   root.append(el);
   const text = last
-    ? `I planned ${o.townName} in HDBreeze 🌬️ ${o.townSummary!.homes.toLocaleString()} people housed, ${o.townSummary!.avgPct}% breathable, ${o.townSummary!.stars}★. Can you plan a cooler town? ${location.origin}${location.pathname}`
-    : `I cleared ${o.plotLabel} (${o.townName}) in HDBreeze 🌬️ ${stars} ${o.minPct}% breathable, ${o.state.homes.toLocaleString()} people housed. ${location.origin}${location.pathname}`;
+    ? `I planned ${o.townName} in HDBreeze 🌬️ ${o.townSummary!.homes.toLocaleString()} people housed, ${o.townSummary!.avgPct}% breathable, ${o.townSummary!.stars}★. Can you plan a cooler town? Can or not? ${location.origin}${location.pathname}`
+    : `I cleared ${o.plotLabel} (${o.townName}) in HDBreeze 🌬️ ${stars} ${o.minPct}% breathable, ${o.state.homes.toLocaleString()} people housed. Can or not? ${location.origin}${location.pathname}`;
   const note = el.querySelector<HTMLElement>(".share-note")!;
   el.querySelector<HTMLButtonElement>(".share-text")!.onclick = async () => {
     const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };

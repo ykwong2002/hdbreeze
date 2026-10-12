@@ -7,7 +7,7 @@ import type { LevelIndexEntry, TownData } from "./game/level-types";
 import type { SolverKind } from "./sim/solver";
 import { Progress } from "./game/progress";
 import { runIntro } from "./game/intro";
-import { lessonFor } from "./game/lessons";
+import { lessonFor, techniqueOk, TECHNIQUE_LABEL } from "./game/lessons";
 import { sound } from "./sound";
 import { mountHud } from "./ui/hud";
 import { mountSelect } from "./ui/select";
@@ -170,7 +170,7 @@ async function boot(): Promise<void> {
     document.body.classList.add("in-level");
     score = mountScore(ui, s.level);
     let airWas = false;
-    s.onScore((st) => { score?.update(st, s.season.id); if (st.airOk && !airWas && !s.intro) sound.cool(); airWas = st.airOk; });
+    s.onScore((st) => { score?.update(st, s.season.id, s.scoring.baselines[s.season.id]); if (st.airOk && !airWas && !s.intro) sound.cool(); airWas = st.airOk; });
     void s.overlay.ready.then((sim) => {
       markers = mountHotSpotMarkers(ui, hdb.map, (x, y) => sim.toLonLat(x, y));
       s.onHotSpots((spots) => markers?.set(spots));
@@ -205,7 +205,8 @@ async function boot(): Promise<void> {
       s.select(null);
       const idx = s.level.plotIndex ?? 1, count = s.level.plotCount ?? 1;
       const minPct = s.scoring.minSeasonPct();
-      progress.record(s.level.id, { stars: s.scoring.stars(), homes: s.scoring.state.homes, breath: minPct });
+      const stars = s.scoring.stars(techniqueOk(s));
+      progress.record(s.level.id, { stars, homes: s.scoring.state.homes, breath: minPct });
       townView?.refresh();
       const ids = town?.plots.map((p) => p.id) ?? [];
       const last = idx >= count && !!town && progress.townCleared(ids);
@@ -213,7 +214,8 @@ async function boot(): Promise<void> {
       const results = ids.map((id) => progress.get(id)).filter((r): r is NonNullable<typeof r> => !!r);
       endcard = showEndCard(ui, {
         townName: s.level.name, plotLabel: s.level.plotLabel ?? s.level.subzone, plotIndex: idx, plotCount: count,
-        state: s.scoring.state, stars: s.scoring.stars(), minPct, starPct: s.level.starPct ?? 75, targetHomes: s.level.targets.homes,
+        state: s.scoring.state, stars, minPct, starPct: s.level.starPct ?? 75, targetHomes: s.level.targets.homes,
+        technique: TECHNIQUE_LABEL[s.level.focus ?? "corridors"].split(":")[0]!,
         lesson: lessonFor(s),
         ...(last ? { townSummary: { homes: results.reduce((a, r) => a + r.homes, 0), avgPct: Math.round(results.reduce((a, r) => a + r.breath, 0) / Math.max(1, results.length)), stars: progress.stars(ids) } } : {}),
         onNext: () => { endcard = null; const next = town?.plots[idx]; if (next) void play(next.id); else if (town) void showTown(town.id); },
@@ -221,7 +223,7 @@ async function boot(): Promise<void> {
         onReplay: () => { endcard = null; },
         image: async () => {
           const { captureShareImage } = await import("./share/capture");
-          return captureShareImage(hdb.map, { levelName: `${s.level.name} · ${s.level.plotLabel ?? ""}`, state: s.scoring.state, stars: s.scoring.stars() });
+          return captureShareImage(hdb.map, { levelName: `${s.level.name} · ${s.level.plotLabel ?? ""}`, state: s.scoring.state, stars });
         },
       });
     });

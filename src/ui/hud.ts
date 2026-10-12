@@ -41,7 +41,8 @@ export function mountHud(root: HTMLElement, session: LevelSession, onBack: () =>
   root.append(bar);
 
   const update = (): void => {
-    label.textContent = session.season.label.split(" (")[0] ?? session.season.label;
+    const name = session.season.label.split(" (")[0] ?? session.season.label;
+    label.textContent = session.level.wind.required.length > 1 ? `${name} · tap to switch` : name;
     seasonBtn.classList.toggle("season-done", session.scoring.state.held.includes(session.season.id));
     seasonBtn.classList.toggle("season-required", session.level.wind.required.length > 1);
     // the arrow points where the wind goes: from fromDeg toward fromDeg + 180

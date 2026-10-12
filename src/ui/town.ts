@@ -33,10 +33,10 @@ export function mountTown(root: HTMLElement, map: MlMap, town: TownData, progres
         const stars = r ? "★".repeat(r.stars) + "☆".repeat(3 - r.stars) : unlocked ? "☆☆☆" : "🔒";
         return `<button class="tv-plot${unlocked ? "" : " locked"}" data-id="${p.id}" ${unlocked ? "" : "disabled"}>
           <span class="tv-n">${p.n}</span>
-          <span class="tv-body"><strong>${p.label}</strong><small>${(p.areaM2 / 10_000).toFixed(1)} ha · plot ratio ${p.gpr} · ${p.blocks} blocks${p.seasons.length > 1 ? " · both monsoons" : ""}${p.hotspots ? " · neighbour spot" : ""}</small></span>
+          <span class="tv-body"><strong>${p.label}</strong><small>${(p.areaM2 / 10_000).toFixed(1)} ha · plot ratio ${p.gpr} · ${p.blocks} blocks${p.seasons.length > 1 ? " · both monsoons" : ""}${p.hotspots ? " · neighbour spot" : ""} · ${p.focus === "void" ? "void decks" : p.focus === "stepping" ? "height stepping" : "wind corridors"}</small></span>
           <span class="tv-stars">${stars}</span></button>`;
       }).join("")}</div>
-      <p class="tv-hint">${progress.townCleared(ids) ? "Town cleared. Replay any plot for more stars." : "Clear each plot to unlock the next."}</p>`;
+      <p class="tv-hint">${progress.townCleared(ids) ? "Town cleared. Replay any plot for more stars." : "Clear each plot to unlock the next."} Plot names are ours; everything is an estimate, for fun and education.</p>`;
     card.querySelector<HTMLButtonElement>(".tv-back")!.onclick = onBack;
     card.querySelectorAll<HTMLButtonElement>(".tv-plot").forEach((b) => { b.onclick = () => onPick(b.dataset.id!); });
     const src = map.getSource("town-plots") as { setData(d: unknown): void } | undefined;

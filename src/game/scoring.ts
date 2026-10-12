@@ -127,12 +127,12 @@ export class Scoring {
     return v.length ? Math.min(...v) : Math.round(this.state.breath);
   }
 
-  /** 1 star for clearing, 2 when every season sat at or above starPct, 3 when homes also beat the target by 15 %. */
-  stars(): number {
+  /** 1 star for clearing, 2 when every season sat at or above starPct, 3 for the plot's technique, 90 %+ or 15 % more homes. */
+  stars(technique = false): number {
     const s = this.state;
     if (!s.cleared) return 0;
     const star2 = this.minSeasonPct() >= this.starPct && s.spotsMargin;
-    const star3 = star2 && s.homes >= 1.15 * this.targetHomes;
+    const star3 = technique || this.minSeasonPct() >= 90 || s.homes >= 1.15 * this.targetHomes;
     return 1 + (star2 ? 1 : 0) + (star3 ? 1 : 0);
   }
 
